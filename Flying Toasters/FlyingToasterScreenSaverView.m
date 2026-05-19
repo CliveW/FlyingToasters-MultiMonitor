@@ -47,11 +47,54 @@ static NSNotificationName const ScreenSaverWillStopNotificationName = @"com.appl
 - (void)startAnimation
 {
     [super startAnimation];
-    
+
     self.ftv.toastLevel = [ToasterDefaults getToastLevel];
     self.ftv.speed = [ToasterDefaults getFlightSpeed];
     self.ftv.numOfToasters = [ToasterDefaults getNumberOfToasters];
-    
+
+    [self _captureScreenAndStart:0];
+}
+
+- (NSRect)_resolveScreenFrame
+{
+    if (self.isPreview) {
+        return NSMakeRect(0, 0, self.bounds.size.width, self.bounds.size.height);
+    }
+    if (self.window.screen) {
+        return self.window.screen.frame;
+    }
+    // window.screen is permanently nil for screensaver windows on external
+    // displays. NSWindow.deviceDescription[NSScreenNumber] also returns nil.
+    // But empirically, NSWindow.frame and NSScreen.frame agree on origin.x and
+    // size — only y differs because the window reports in Quartz coords while
+    // NSScreen reports in AppKit. Match by (x origin + size) to find the
+    // NSScreen this window belongs to and use its canonical AppKit frame.
+    if (self.window) {
+        NSRect wf = self.window.frame;
+        for (NSScreen* s in [NSScreen screens]) {
+            if (CGSizeEqualToSize(s.frame.size, wf.size) &&
+                fabs(s.frame.origin.x - wf.origin.x) < 1.0) {
+                return s.frame;
+            }
+        }
+    }
+    return NSZeroRect;
+}
+
+- (void)_captureScreenAndStart:(NSUInteger)attempt
+{
+    NSRect frame = [self _resolveScreenFrame];
+    if (NSIsEmptyRect(frame) && attempt < 5) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(50 * NSEC_PER_MSEC)),
+                       dispatch_get_main_queue(), ^{
+            [self _captureScreenAndStart:attempt + 1];
+        });
+        return;
+    }
+    if (NSIsEmptyRect(frame)) {
+        frame = NSMakeRect(0, 0, self.bounds.size.width, self.bounds.size.height);
+    }
+    self.ftv.screenFrameInGlobal = frame;
     [self.ftv start];
 }
 

@@ -32,6 +32,9 @@
 		ABF4BF2D2234F849000D5A44 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = ABF4BF2C2234F849000D5A44 /* main.m */; };
 		ABF4BF2F2234F849000D5A44 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ABF4BF2E2234F849000D5A44 /* Images.xcassets */; };
 		ABF4BF322234F849000D5A44 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = ABF4BF302234F849000D5A44 /* MainMenu.xib */; };
+		FB0A17F72FBC2C7800FC69F2 /* ToasterWorld.h in Headers */ = {isa = PBXBuildFile; fileRef = FB0A17F52FBC2C7800FC69F2 /* ToasterWorld.h */; };
+		FB0A17F82FBC2C7800FC69F2 /* ToasterWorld.m in Sources */ = {isa = PBXBuildFile; fileRef = FB0A17F62FBC2C7800FC69F2 /* ToasterWorld.m */; };
+		FB0A17F92FBC2C7800FC69F2 /* ToasterWorld.m in Sources */ = {isa = PBXBuildFile; fileRef = FB0A17F62FBC2C7800FC69F2 /* ToasterWorld.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -58,6 +61,8 @@
 		ABF4BF2C2234F849000D5A44 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		ABF4BF2E2234F849000D5A44 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		ABF4BF312234F849000D5A44 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		FB0A17F52FBC2C7800FC69F2 /* ToasterWorld.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ToasterWorld.h; sourceTree = "<group>"; };
+		FB0A17F62FBC2C7800FC69F2 /* ToasterWorld.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ToasterWorld.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +104,8 @@
 		ABF4BEE82234F602000D5A44 /* Flying Toasters */ = {
 			isa = PBXGroup;
 			children = (
+				FB0A17F52FBC2C7800FC69F2 /* ToasterWorld.h */,
+				FB0A17F62FBC2C7800FC69F2 /* ToasterWorld.m */,
 				ABF4BEF42234F6CE000D5A44 /* FlyingToasterPreferencesController.h */,
 				ABF4BEF52234F6CE000D5A44 /* FlyingToasterPreferencesController.m */,
 				ABF4BEF62234F6CE000D5A44 /* FlyingToasterPreferencesController.xib */,
@@ -156,6 +163,7 @@
 			files = (
 				ABF4BF0B2234F6CE000D5A44 /* FlyingToasterPreferencesController.h in Headers */,
 				ABF4BF0E2234F6CE000D5A44 /* FlyingToasterScreenSaverView.h in Headers */,
+				FB0A17F72FBC2C7800FC69F2 /* ToasterWorld.h in Headers */,
 				ABF4BF1F2234F6CE000D5A44 /* ToasterDefaults.h in Headers */,
 				ABF4BF132234F6CE000D5A44 /* ScreenSaverScene.h in Headers */,
 				ABF4BF102234F6CE000D5A44 /* FlyingToastersView.h in Headers */,
@@ -269,6 +277,7 @@
 				ABF4BF202234F6CE000D5A44 /* ToasterDefaults.m in Sources */,
 				ABF4BF112234F6CE000D5A44 /* FlyingToastersView.m in Sources */,
 				ABF4BF0F2234F6CE000D5A44 /* FlyingToasterScreenSaverView.m in Sources */,
+				FB0A17F82FBC2C7800FC69F2 /* ToasterWorld.m in Sources */,
 				ABF4BF0C2234F6CE000D5A44 /* FlyingToasterPreferencesController.m in Sources */,
 				ABF4BF142234F6CE000D5A44 /* ScreenSaverScene.m in Sources */,
 			);
@@ -281,6 +290,7 @@
 				AB3BE46E2234FDE1004A6626 /* ToasterDefaults.m in Sources */,
 				AB3BE46D2234FDE1004A6626 /* ScreenSaverScene.m in Sources */,
 				AB3BE46C2234FDE1004A6626 /* FlyingToastersView.m in Sources */,
+				FB0A17F92FBC2C7800FC69F2 /* ToasterWorld.m in Sources */,
 				AB3BE46B2234FDE1004A6626 /* FlyingToasterScreenSaverView.m in Sources */,
 				ABF4BF2D2234F849000D5A44 /* main.m in Sources */,
 				ABF4BF2B2234F849000D5A44 /* AppDelegate.m in Sources */,
@@ -349,7 +359,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -397,7 +407,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 			};

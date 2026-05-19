@@ -8,3 +8,6 @@
 
 ## User settings
 xcuserdata
+
+## Local build output (xcodebuild -derivedDataPath build)
+build/

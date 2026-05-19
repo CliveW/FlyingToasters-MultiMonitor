@@ -15,6 +15,10 @@
 @property FlightSpeed speed;        // defaults to MediumSpeed
 @property NSUInteger numOfToasters; // defaults to 6
 
+// This screen's frame in AppKit's global display coordinate space.
+// Set by FlyingToasterScreenSaverView before -start.
+@property (assign) NSRect screenFrameInGlobal;
+
 - (void)start;
 - (void)end;
 @end
