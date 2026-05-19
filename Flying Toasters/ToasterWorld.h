@@ -2,6 +2,9 @@
 //  ToasterWorld.h
 //  Flying Toasters
 //
+//  Created by Clive Wright on 2026-05-19.
+//  Copyright © 2026 Clive Wright. Licensed under the MIT License (see LICENSE).
+//
 //  Process-wide singleton that simulates the toaster swarm across the union
 //  of all attached displays. On macOS 14+ legacyScreenSaver hosts every
 //  ScreenSaverView for every display in a single process, so a shared

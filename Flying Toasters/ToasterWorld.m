@@ -2,6 +2,9 @@
 //  ToasterWorld.m
 //  Flying Toasters
 //
+//  Created by Clive Wright on 2026-05-19.
+//  Copyright © 2026 Clive Wright. Licensed under the MIT License (see LICENSE).
+//
 
 #import "ToasterWorld.h"
 
