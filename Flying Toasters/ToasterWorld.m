@@ -111,7 +111,7 @@ static void FTLog(NSString* msg)
         NSStringFromRect(computedBounds),
         (unsigned long)areaFactor, (unsigned long)self.count]);
     for (NSScreen* s in allScreens) {
-        NSNumber* sn = s.deviceDescription[NSDeviceDescriptionKey(@"NSScreenNumber")];
+        NSNumber* sn = s.deviceDescription[@"NSScreenNumber"];
         FTLog([NSString stringWithFormat:
             @"  NSScreen num=%@ frame=%@", sn, NSStringFromRect(s.frame)]);
     }

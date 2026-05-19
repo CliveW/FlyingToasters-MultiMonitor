@@ -82,11 +82,10 @@ static NSNotificationName const ScreenSaverWillStopNotificationName = @"com.appl
     // Look up the window's CGDirectDisplayID via deviceDescription and find
     // the NSScreen that matches. NSScreen.frame is canonical AppKit coords.
     if (self.window) {
-        NSDeviceDescriptionKey key = NSDeviceDescriptionKey(@"NSScreenNumber");
-        NSNumber* sn = self.window.deviceDescription[key];
+        NSNumber* sn = self.window.deviceDescription[@"NSScreenNumber"];
         if (sn) {
             for (NSScreen* s in [NSScreen screens]) {
-                NSNumber* ssn = s.deviceDescription[key];
+                NSNumber* ssn = s.deviceDescription[@"NSScreenNumber"];
                 if ([sn isEqualToNumber:ssn]) {
                     return s.frame;
                 }
@@ -109,7 +108,7 @@ static NSNotificationName const ScreenSaverWillStopNotificationName = @"com.appl
     if (NSIsEmptyRect(frame)) {
         frame = NSMakeRect(0, 0, self.bounds.size.width, self.bounds.size.height);
     }
-    NSNumber* sn = self.window.deviceDescription[NSDeviceDescriptionKey(@"NSScreenNumber")];
+    NSNumber* sn = self.window.deviceDescription[@"NSScreenNumber"];
     FTLogView([NSString stringWithFormat:
         @"view start: frame=%@ window.frame=%@ window.screen=%@ NSScreenNumber=%@ attempt=%lu",
         NSStringFromRect(frame),
