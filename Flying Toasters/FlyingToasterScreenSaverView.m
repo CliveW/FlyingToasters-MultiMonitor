@@ -52,16 +52,40 @@ static NSNotificationName const ScreenSaverWillStopNotificationName = @"com.appl
     self.ftv.speed = [ToasterDefaults getFlightSpeed];
     self.ftv.numOfToasters = [ToasterDefaults getNumberOfToasters];
 
-    // In preview mode the view is not on a real screen — treat its bounds as a
-    // single-display world so the multi-monitor math degenerates correctly.
-    NSRect screenFrame;
-    if (self.isPreview || !self.window.screen) {
-        screenFrame = NSMakeRect(0, 0, self.bounds.size.width, self.bounds.size.height);
-    } else {
-        screenFrame = self.window.screen.frame;
-    }
-    self.ftv.screenFrameInGlobal = screenFrame;
+    [self _captureScreenAndStart:0];
+}
 
+- (NSRect)_resolveScreenFrame
+{
+    if (self.isPreview) {
+        return NSMakeRect(0, 0, self.bounds.size.width, self.bounds.size.height);
+    }
+    // window.screen is the cleanest source but is often nil during early
+    // startAnimation. window.frame is set to the display's global rect for a
+    // fullscreen screensaver window and is the most reliable signal.
+    if (self.window.screen) {
+        return self.window.screen.frame;
+    }
+    if (self.window && !NSEqualSizes(self.window.frame.size, NSZeroSize)) {
+        return self.window.frame;
+    }
+    return NSZeroRect;
+}
+
+- (void)_captureScreenAndStart:(NSUInteger)attempt
+{
+    NSRect frame = [self _resolveScreenFrame];
+    if (NSIsEmptyRect(frame) && attempt < 60) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(50 * NSEC_PER_MSEC)),
+                       dispatch_get_main_queue(), ^{
+            [self _captureScreenAndStart:attempt + 1];
+        });
+        return;
+    }
+    if (NSIsEmptyRect(frame)) {
+        frame = NSMakeRect(0, 0, self.bounds.size.width, self.bounds.size.height);
+    }
+    self.ftv.screenFrameInGlobal = frame;
     [self.ftv start];
 }
 
