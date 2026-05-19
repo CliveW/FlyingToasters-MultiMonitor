@@ -47,11 +47,21 @@ static NSNotificationName const ScreenSaverWillStopNotificationName = @"com.appl
 - (void)startAnimation
 {
     [super startAnimation];
-    
+
     self.ftv.toastLevel = [ToasterDefaults getToastLevel];
     self.ftv.speed = [ToasterDefaults getFlightSpeed];
     self.ftv.numOfToasters = [ToasterDefaults getNumberOfToasters];
-    
+
+    // In preview mode the view is not on a real screen — treat its bounds as a
+    // single-display world so the multi-monitor math degenerates correctly.
+    NSRect screenFrame;
+    if (self.isPreview || !self.window.screen) {
+        screenFrame = NSMakeRect(0, 0, self.bounds.size.width, self.bounds.size.height);
+    } else {
+        screenFrame = self.window.screen.frame;
+    }
+    self.ftv.screenFrameInGlobal = screenFrame;
+
     [self.ftv start];
 }
 
