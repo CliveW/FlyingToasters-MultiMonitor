@@ -67,12 +67,36 @@
     if (self.configured) return;
     self.toastLevel = level;
     self.speed = speed;
-    // The pref is per-monitor (preserving the original mental model).
-    // Scale up to a global population so per-screen density matches what
-    // the user got before multi-monitor coordination.
-    NSUInteger screens = MAX((NSUInteger)1, [NSScreen screens].count);
-    self.count = count * screens;
     self.bundle = bundle;
+
+    // Compute the virtual-desktop union directly from NSScreen.screens so
+    // bounds are correct even if per-view registration is racy. Scale count
+    // by total area divided by the largest single screen — this handles
+    // non-rectangular layouts (gaps between displays) where a screen-count
+    // multiplier would under-provision.
+    NSArray<NSScreen*>* allScreens = [NSScreen screens];
+    NSRect computedBounds = NSZeroRect;
+    BOOL first = YES;
+    CGFloat largestArea = 1.0;
+    for (NSScreen* s in allScreens) {
+        NSRect f = s.frame;
+        CGFloat a = f.size.width * f.size.height;
+        if (a > largestArea) largestArea = a;
+        if (first) { computedBounds = f; first = NO; }
+        else       { computedBounds = NSUnionRect(computedBounds, f); }
+    }
+    CGFloat globalArea = computedBounds.size.width * computedBounds.size.height;
+    NSUInteger areaFactor = MAX((NSUInteger)1, (NSUInteger)ceil(globalArea / largestArea));
+    self.count = count * areaFactor;
+    if (NSIsEmptyRect(self.globalBounds)) {
+        self.globalBounds = computedBounds;
+    }
+
+    NSLog(@"[FlyingToasters] configure: pref=%lu screens=%lu bounds=%@ areaFactor=%lu total=%lu",
+          (unsigned long)count, (unsigned long)allScreens.count,
+          NSStringFromRect(computedBounds),
+          (unsigned long)areaFactor, (unsigned long)self.count);
+
     self.configured = YES;
 }
 
