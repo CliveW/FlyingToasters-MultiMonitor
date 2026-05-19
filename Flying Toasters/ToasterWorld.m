@@ -16,7 +16,6 @@
 
 
 @interface ToasterWorld ()
-@property (strong) NSMutableArray<NSValue*>* screenRects;       // boxed NSRect
 @property (strong) NSMutableArray<FTToasterParticle*>* mutableParticles;
 @property (assign) NSRect globalBounds;
 @property (assign) ToastLevel toastLevel;
@@ -28,6 +27,7 @@
 @property (assign) uint64_t nextParticleId;
 @property (assign) NSTimeInterval nextSpawnTime;
 @property (assign) NSUInteger spawnIndex;
+@property (assign) NSInteger viewRefCount;
 @end
 
 
@@ -46,7 +46,6 @@
 - (instancetype)init
 {
     if (self = [super init]) {
-        _screenRects = [NSMutableArray array];
         _mutableParticles = [NSMutableArray array];
         _nextParticleId = 1;
         _globalBounds = NSZeroRect;
@@ -92,7 +91,7 @@
         self.globalBounds = computedBounds;
     }
 
-    NSLog(@"[FlyingToasters] configure: pref=%lu screens=%lu bounds=%@ areaFactor=%lu total=%lu",
+    NSLog(@"[FlyingToasters] configure: pref=%lu screens=%lu bounds=%{public}@ areaFactor=%lu total=%lu",
           (unsigned long)count, (unsigned long)allScreens.count,
           NSStringFromRect(computedBounds),
           (unsigned long)areaFactor, (unsigned long)self.count);
@@ -102,33 +101,19 @@
 
 - (void)registerScreenRect:(NSRect)globalRect
 {
-    NSValue* boxed = [NSValue valueWithRect:globalRect];
-    if (![self.screenRects containsObject:boxed]) {
-        [self.screenRects addObject:boxed];
-        [self _recomputeBounds];
-    }
+    // Ref-counting only. legacyScreenSaver creates extra ScreenSaverView
+    // instances (previews / thumbnails) whose frames must not pollute
+    // globalBounds — that's set once at configure time from NSScreen.screens.
+    self.viewRefCount++;
 }
 
 - (void)unregisterScreenRect:(NSRect)globalRect
 {
-    NSValue* boxed = [NSValue valueWithRect:globalRect];
-    [self.screenRects removeObject:boxed];
-    [self _recomputeBounds];
-    if (self.screenRects.count == 0) {
+    self.viewRefCount--;
+    if (self.viewRefCount <= 0) {
+        self.viewRefCount = 0;
         [self stop];
     }
-}
-
-- (void)_recomputeBounds
-{
-    NSRect bounds = NSZeroRect;
-    BOOL first = YES;
-    for (NSValue* v in self.screenRects) {
-        NSRect r = [v rectValue];
-        if (first) { bounds = r; first = NO; }
-        else       { bounds = NSUnionRect(bounds, r); }
-    }
-    self.globalBounds = bounds;
 }
 
 - (void)start

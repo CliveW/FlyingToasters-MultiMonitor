@@ -85,7 +85,7 @@ static NSNotificationName const ScreenSaverWillStopNotificationName = @"com.appl
     if (NSIsEmptyRect(frame)) {
         frame = NSMakeRect(0, 0, self.bounds.size.width, self.bounds.size.height);
     }
-    NSLog(@"[FlyingToasters] view start: frame=%@ window=%@ window.screen=%@ attempt=%lu",
+    NSLog(@"[FlyingToasters] view start: frame=%{public}@ window=%{public}@ window.screen=%{public}@ attempt=%lu",
           NSStringFromRect(frame),
           self.window ? @"yes" : @"NO",
           self.window.screen ? @"yes" : @"NO",
