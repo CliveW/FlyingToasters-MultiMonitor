@@ -10,16 +10,6 @@
 #import "FlyingToastersView.h"
 #import "FlyingToasterScreenSaverView.h"
 
-static void FTLogView(NSString* msg)
-{
-    FILE* f = fopen("/tmp/flyingtoasters.log", "a");
-    if (!f) return;
-    NSString* line = [NSString stringWithFormat:@"%.3f %@\n",
-                      CFAbsoluteTimeGetCurrent(), msg];
-    fprintf(f, "%s", [line UTF8String]);
-    fclose(f);
-}
-
 static NSNotificationName const ScreenSaverWillStopNotificationName = @"com.apple.screensaver.willstop";
 
 @interface FlyingToasterScreenSaverView ()
@@ -104,14 +94,6 @@ static NSNotificationName const ScreenSaverWillStopNotificationName = @"com.appl
     if (NSIsEmptyRect(frame)) {
         frame = NSMakeRect(0, 0, self.bounds.size.width, self.bounds.size.height);
     }
-    NSNumber* sn = self.window.deviceDescription[@"NSScreenNumber"];
-    FTLogView([NSString stringWithFormat:
-        @"view start: frame=%@ window.frame=%@ window.screen=%@ NSScreenNumber=%@ attempt=%lu",
-        NSStringFromRect(frame),
-        self.window ? NSStringFromRect(self.window.frame) : @"(no window)",
-        self.window.screen ? @"yes" : @"NO",
-        sn,
-        (unsigned long)attempt]);
     self.ftv.screenFrameInGlobal = frame;
     [self.ftv start];
 }

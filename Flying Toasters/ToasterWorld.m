@@ -5,18 +5,6 @@
 
 #import "ToasterWorld.h"
 
-// Unified logging redacts NSString arguments as <private>. Bypass it: write
-// to /tmp/flyingtoasters.log. Tail with `tail -f /tmp/flyingtoasters.log`.
-static void FTLog(NSString* msg)
-{
-    FILE* f = fopen("/tmp/flyingtoasters.log", "a");
-    if (!f) return;
-    NSString* line = [NSString stringWithFormat:@"%.3f %@\n",
-                      CFAbsoluteTimeGetCurrent(), msg];
-    fprintf(f, "%s", [line UTF8String]);
-    fclose(f);
-}
-
 @implementation FTToasterParticle
 - (CGPoint)positionAtTime:(NSTimeInterval)t
 {
@@ -40,8 +28,6 @@ static void FTLog(NSString* msg)
 @property (assign) NSTimeInterval nextSpawnTime;
 @property (assign) NSUInteger spawnIndex;
 @property (assign) NSInteger viewRefCount;
-@property (assign) NSTimeInterval lastSummaryTime;
-@property (assign) NSUInteger reapedThisInterval;
 @end
 
 
@@ -105,33 +91,17 @@ static void FTLog(NSString* msg)
         self.globalBounds = computedBounds;
     }
 
-    FTLog([NSString stringWithFormat:
-        @"configure: pref=%lu screens=%lu bounds=%@ areaFactor=%lu total=%lu",
-        (unsigned long)count, (unsigned long)allScreens.count,
-        NSStringFromRect(computedBounds),
-        (unsigned long)areaFactor, (unsigned long)self.count]);
-    for (NSScreen* s in allScreens) {
-        NSNumber* sn = s.deviceDescription[@"NSScreenNumber"];
-        FTLog([NSString stringWithFormat:
-            @"  NSScreen num=%@ frame=%@", sn, NSStringFromRect(s.frame)]);
-    }
-
     self.configured = YES;
 }
 
 - (void)registerScreenRect:(NSRect)globalRect
 {
     self.viewRefCount++;
-    FTLog([NSString stringWithFormat:
-        @"register: refCount=%ld rect=%@",
-        (long)self.viewRefCount, NSStringFromRect(globalRect)]);
 }
 
 - (void)unregisterScreenRect:(NSRect)globalRect
 {
     self.viewRefCount--;
-    FTLog([NSString stringWithFormat:
-        @"unregister: refCount=%ld", (long)self.viewRefCount]);
     if (self.viewRefCount <= 0) {
         self.viewRefCount = 0;
         [self stop];
@@ -145,16 +115,10 @@ static void FTLog(NSString* msg)
     self.spawnIndex = 0;
     self.nextSpawnTime = CFAbsoluteTimeGetCurrent();
     [self.mutableParticles removeAllObjects];
-    FTLog([NSString stringWithFormat:
-        @"start: count=%lu bounds=%@",
-        (unsigned long)self.count, NSStringFromRect(self.globalBounds)]);
 }
 
 - (void)stop
 {
-    FTLog([NSString stringWithFormat:
-        @"stop: had %lu particles",
-        (unsigned long)self.mutableParticles.count]);
     self.isRunning = NO;
     [self.mutableParticles removeAllObjects];
 }
@@ -174,25 +138,11 @@ static void FTLog(NSString* msg)
             pos.y < NSMinY(self.globalBounds) - margin ||
             pos.x > NSMaxX(self.globalBounds) + margin ||
             pos.y > NSMaxY(self.globalBounds) + margin) {
-            self.reapedThisInterval++;
             continue;
         }
         [survivors addObject:p];
     }
     self.mutableParticles = survivors;
-
-    if (now - self.lastSummaryTime > 1.0) {
-        FTToasterParticle* sample = self.mutableParticles.firstObject;
-        NSString* samplePos = sample ? NSStringFromPoint([sample positionAtTime:now]) : @"none";
-        FTLog([NSString stringWithFormat:
-            @"tick: particles=%lu spawnIndex=%lu reaped(last~1s)=%lu sample0=%@",
-            (unsigned long)self.mutableParticles.count,
-            (unsigned long)self.spawnIndex,
-            (unsigned long)self.reapedThisInterval,
-            samplePos]);
-        self.reapedThisInterval = 0;
-        self.lastSummaryTime = now;
-    }
 
     // Initial fill: spawn one per spawnInterval until the population hits
     // count. Thereafter, immediately replace anything reaped.
