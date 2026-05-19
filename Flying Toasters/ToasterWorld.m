@@ -28,6 +28,8 @@
 @property (assign) NSTimeInterval nextSpawnTime;
 @property (assign) NSUInteger spawnIndex;
 @property (assign) NSInteger viewRefCount;
+@property (assign) NSTimeInterval lastSummaryTime;
+@property (assign) NSUInteger reapedThisInterval;
 @end
 
 
@@ -91,25 +93,29 @@
         self.globalBounds = computedBounds;
     }
 
-    NSLog(@"[FlyingToasters] configure: pref=%lu screens=%lu bounds=%{public}@ areaFactor=%lu total=%lu",
-          (unsigned long)count, (unsigned long)allScreens.count,
-          NSStringFromRect(computedBounds),
-          (unsigned long)areaFactor, (unsigned long)self.count);
+    NSString* configMsg = [NSString stringWithFormat:
+        @"[FlyingToasters] configure: pref=%lu screens=%lu bounds=%@ areaFactor=%lu total=%lu",
+        (unsigned long)count, (unsigned long)allScreens.count,
+        NSStringFromRect(computedBounds),
+        (unsigned long)areaFactor, (unsigned long)self.count];
+    NSLog(@"%@", configMsg);
 
     self.configured = YES;
 }
 
 - (void)registerScreenRect:(NSRect)globalRect
 {
-    // Ref-counting only. legacyScreenSaver creates extra ScreenSaverView
-    // instances (previews / thumbnails) whose frames must not pollute
-    // globalBounds — that's set once at configure time from NSScreen.screens.
     self.viewRefCount++;
+    NSLog(@"%@", ([NSString stringWithFormat:
+        @"[FlyingToasters] register: refCount=%ld rect=%@",
+        (long)self.viewRefCount, NSStringFromRect(globalRect)]));
 }
 
 - (void)unregisterScreenRect:(NSRect)globalRect
 {
     self.viewRefCount--;
+    NSLog(@"%@", ([NSString stringWithFormat:
+        @"[FlyingToasters] unregister: refCount=%ld", (long)self.viewRefCount]));
     if (self.viewRefCount <= 0) {
         self.viewRefCount = 0;
         [self stop];
@@ -123,10 +129,16 @@
     self.spawnIndex = 0;
     self.nextSpawnTime = CFAbsoluteTimeGetCurrent();
     [self.mutableParticles removeAllObjects];
+    NSLog(@"%@", ([NSString stringWithFormat:
+        @"[FlyingToasters] start: count=%lu bounds=%@",
+        (unsigned long)self.count, NSStringFromRect(self.globalBounds)]));
 }
 
 - (void)stop
 {
+    NSLog(@"%@", ([NSString stringWithFormat:
+        @"[FlyingToasters] stop: had %lu particles",
+        (unsigned long)self.mutableParticles.count]));
     self.isRunning = NO;
     [self.mutableParticles removeAllObjects];
 }
@@ -146,11 +158,25 @@
             pos.y < NSMinY(self.globalBounds) - margin ||
             pos.x > NSMaxX(self.globalBounds) + margin ||
             pos.y > NSMaxY(self.globalBounds) + margin) {
+            self.reapedThisInterval++;
             continue;
         }
         [survivors addObject:p];
     }
     self.mutableParticles = survivors;
+
+    if (now - self.lastSummaryTime > 1.0) {
+        FTToasterParticle* sample = self.mutableParticles.firstObject;
+        NSString* samplePos = sample ? NSStringFromPoint([sample positionAtTime:now]) : @"none";
+        NSLog(@"%@", ([NSString stringWithFormat:
+            @"[FlyingToasters] tick: particles=%lu spawnIndex=%lu reaped(last~1s)=%lu sample0=%@",
+            (unsigned long)self.mutableParticles.count,
+            (unsigned long)self.spawnIndex,
+            (unsigned long)self.reapedThisInterval,
+            samplePos]));
+        self.reapedThisInterval = 0;
+        self.lastSummaryTime = now;
+    }
 
     // Initial fill: spawn one per spawnInterval until the population hits
     // count. Thereafter, immediately replace anything reaped.
