@@ -73,22 +73,18 @@ static NSNotificationName const ScreenSaverWillStopNotificationName = @"com.appl
     if (self.window.screen) {
         return self.window.screen.frame;
     }
-    // window.screen is nil for some screensaver windows. window.frame is also
-    // unreliable here — it can come back in Quartz/CG coords (y-down) instead
-    // of NSScreen's AppKit (y-up) coords, which would put the world bounds
-    // and per-view origin in different coordinate systems and make particles
-    // invisible on external monitors.
-    //
-    // Look up the window's CGDirectDisplayID via deviceDescription and find
-    // the NSScreen that matches. NSScreen.frame is canonical AppKit coords.
+    // window.screen is permanently nil for screensaver windows on external
+    // displays. NSWindow.deviceDescription[NSScreenNumber] also returns nil.
+    // But empirically, NSWindow.frame and NSScreen.frame agree on origin.x and
+    // size — only y differs because the window reports in Quartz coords while
+    // NSScreen reports in AppKit. Match by (x origin + size) to find the
+    // NSScreen this window belongs to and use its canonical AppKit frame.
     if (self.window) {
-        NSNumber* sn = self.window.deviceDescription[@"NSScreenNumber"];
-        if (sn) {
-            for (NSScreen* s in [NSScreen screens]) {
-                NSNumber* ssn = s.deviceDescription[@"NSScreenNumber"];
-                if ([sn isEqualToNumber:ssn]) {
-                    return s.frame;
-                }
+        NSRect wf = self.window.frame;
+        for (NSScreen* s in [NSScreen screens]) {
+            if (CGSizeEqualToSize(s.frame.size, wf.size) &&
+                fabs(s.frame.origin.x - wf.origin.x) < 1.0) {
+                return s.frame;
             }
         }
     }
@@ -98,7 +94,7 @@ static NSNotificationName const ScreenSaverWillStopNotificationName = @"com.appl
 - (void)_captureScreenAndStart:(NSUInteger)attempt
 {
     NSRect frame = [self _resolveScreenFrame];
-    if (NSIsEmptyRect(frame) && attempt < 60) {
+    if (NSIsEmptyRect(frame) && attempt < 5) {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(50 * NSEC_PER_MSEC)),
                        dispatch_get_main_queue(), ^{
             [self _captureScreenAndStart:attempt + 1];
