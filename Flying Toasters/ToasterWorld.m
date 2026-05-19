@@ -5,6 +5,18 @@
 
 #import "ToasterWorld.h"
 
+// Unified logging redacts NSString arguments as <private>. Bypass it: write
+// to /tmp/flyingtoasters.log. Tail with `tail -f /tmp/flyingtoasters.log`.
+static void FTLog(NSString* msg)
+{
+    FILE* f = fopen("/tmp/flyingtoasters.log", "a");
+    if (!f) return;
+    NSString* line = [NSString stringWithFormat:@"%.3f %@\n",
+                      CFAbsoluteTimeGetCurrent(), msg];
+    fprintf(f, "%s", [line UTF8String]);
+    fclose(f);
+}
+
 @implementation FTToasterParticle
 - (CGPoint)positionAtTime:(NSTimeInterval)t
 {
@@ -93,12 +105,11 @@
         self.globalBounds = computedBounds;
     }
 
-    NSString* configMsg = [NSString stringWithFormat:
-        @"[FlyingToasters] configure: pref=%lu screens=%lu bounds=%@ areaFactor=%lu total=%lu",
+    FTLog([NSString stringWithFormat:
+        @"configure: pref=%lu screens=%lu bounds=%@ areaFactor=%lu total=%lu",
         (unsigned long)count, (unsigned long)allScreens.count,
         NSStringFromRect(computedBounds),
-        (unsigned long)areaFactor, (unsigned long)self.count];
-    NSLog(@"%@", configMsg);
+        (unsigned long)areaFactor, (unsigned long)self.count]);
 
     self.configured = YES;
 }
@@ -106,16 +117,16 @@
 - (void)registerScreenRect:(NSRect)globalRect
 {
     self.viewRefCount++;
-    NSLog(@"%@", ([NSString stringWithFormat:
-        @"[FlyingToasters] register: refCount=%ld rect=%@",
-        (long)self.viewRefCount, NSStringFromRect(globalRect)]));
+    FTLog([NSString stringWithFormat:
+        @"register: refCount=%ld rect=%@",
+        (long)self.viewRefCount, NSStringFromRect(globalRect)]);
 }
 
 - (void)unregisterScreenRect:(NSRect)globalRect
 {
     self.viewRefCount--;
-    NSLog(@"%@", ([NSString stringWithFormat:
-        @"[FlyingToasters] unregister: refCount=%ld", (long)self.viewRefCount]));
+    FTLog([NSString stringWithFormat:
+        @"unregister: refCount=%ld", (long)self.viewRefCount]);
     if (self.viewRefCount <= 0) {
         self.viewRefCount = 0;
         [self stop];
@@ -129,16 +140,16 @@
     self.spawnIndex = 0;
     self.nextSpawnTime = CFAbsoluteTimeGetCurrent();
     [self.mutableParticles removeAllObjects];
-    NSLog(@"%@", ([NSString stringWithFormat:
-        @"[FlyingToasters] start: count=%lu bounds=%@",
-        (unsigned long)self.count, NSStringFromRect(self.globalBounds)]));
+    FTLog([NSString stringWithFormat:
+        @"start: count=%lu bounds=%@",
+        (unsigned long)self.count, NSStringFromRect(self.globalBounds)]);
 }
 
 - (void)stop
 {
-    NSLog(@"%@", ([NSString stringWithFormat:
-        @"[FlyingToasters] stop: had %lu particles",
-        (unsigned long)self.mutableParticles.count]));
+    FTLog([NSString stringWithFormat:
+        @"stop: had %lu particles",
+        (unsigned long)self.mutableParticles.count]);
     self.isRunning = NO;
     [self.mutableParticles removeAllObjects];
 }
@@ -168,12 +179,12 @@
     if (now - self.lastSummaryTime > 1.0) {
         FTToasterParticle* sample = self.mutableParticles.firstObject;
         NSString* samplePos = sample ? NSStringFromPoint([sample positionAtTime:now]) : @"none";
-        NSLog(@"%@", ([NSString stringWithFormat:
-            @"[FlyingToasters] tick: particles=%lu spawnIndex=%lu reaped(last~1s)=%lu sample0=%@",
+        FTLog([NSString stringWithFormat:
+            @"tick: particles=%lu spawnIndex=%lu reaped(last~1s)=%lu sample0=%@",
             (unsigned long)self.mutableParticles.count,
             (unsigned long)self.spawnIndex,
             (unsigned long)self.reapedThisInterval,
-            samplePos]));
+            samplePos]);
         self.reapedThisInterval = 0;
         self.lastSummaryTime = now;
     }
