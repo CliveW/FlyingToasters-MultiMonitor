@@ -70,14 +70,28 @@ static NSNotificationName const ScreenSaverWillStopNotificationName = @"com.appl
     if (self.isPreview) {
         return NSMakeRect(0, 0, self.bounds.size.width, self.bounds.size.height);
     }
-    // window.screen is the cleanest source but is often nil during early
-    // startAnimation. window.frame is set to the display's global rect for a
-    // fullscreen screensaver window and is the most reliable signal.
     if (self.window.screen) {
         return self.window.screen.frame;
     }
-    if (self.window && !NSEqualSizes(self.window.frame.size, NSZeroSize)) {
-        return self.window.frame;
+    // window.screen is nil for some screensaver windows. window.frame is also
+    // unreliable here — it can come back in Quartz/CG coords (y-down) instead
+    // of NSScreen's AppKit (y-up) coords, which would put the world bounds
+    // and per-view origin in different coordinate systems and make particles
+    // invisible on external monitors.
+    //
+    // Look up the window's CGDirectDisplayID via deviceDescription and find
+    // the NSScreen that matches. NSScreen.frame is canonical AppKit coords.
+    if (self.window) {
+        NSDeviceDescriptionKey key = NSDeviceDescriptionKey(@"NSScreenNumber");
+        NSNumber* sn = self.window.deviceDescription[key];
+        if (sn) {
+            for (NSScreen* s in [NSScreen screens]) {
+                NSNumber* ssn = s.deviceDescription[key];
+                if ([sn isEqualToNumber:ssn]) {
+                    return s.frame;
+                }
+            }
+        }
     }
     return NSZeroRect;
 }
@@ -95,11 +109,13 @@ static NSNotificationName const ScreenSaverWillStopNotificationName = @"com.appl
     if (NSIsEmptyRect(frame)) {
         frame = NSMakeRect(0, 0, self.bounds.size.width, self.bounds.size.height);
     }
+    NSNumber* sn = self.window.deviceDescription[NSDeviceDescriptionKey(@"NSScreenNumber")];
     FTLogView([NSString stringWithFormat:
-        @"view start: frame=%@ window=%@ window.screen=%@ attempt=%lu",
+        @"view start: frame=%@ window.frame=%@ window.screen=%@ NSScreenNumber=%@ attempt=%lu",
         NSStringFromRect(frame),
-        self.window ? @"yes" : @"NO",
+        self.window ? NSStringFromRect(self.window.frame) : @"(no window)",
         self.window.screen ? @"yes" : @"NO",
+        sn,
         (unsigned long)attempt]);
     self.ftv.screenFrameInGlobal = frame;
     [self.ftv start];

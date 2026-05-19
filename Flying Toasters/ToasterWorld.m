@@ -110,6 +110,11 @@ static void FTLog(NSString* msg)
         (unsigned long)count, (unsigned long)allScreens.count,
         NSStringFromRect(computedBounds),
         (unsigned long)areaFactor, (unsigned long)self.count]);
+    for (NSScreen* s in allScreens) {
+        NSNumber* sn = s.deviceDescription[NSDeviceDescriptionKey(@"NSScreenNumber")];
+        FTLog([NSString stringWithFormat:
+            @"  NSScreen num=%@ frame=%@", sn, NSStringFromRect(s.frame)]);
+    }
 
     self.configured = YES;
 }
