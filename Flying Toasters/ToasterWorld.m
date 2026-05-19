@@ -67,7 +67,11 @@
     if (self.configured) return;
     self.toastLevel = level;
     self.speed = speed;
-    self.count = count;
+    // The pref is per-monitor (preserving the original mental model).
+    // Scale up to a global population so per-screen density matches what
+    // the user got before multi-monitor coordination.
+    NSUInteger screens = MAX((NSUInteger)1, [NSScreen screens].count);
+    self.count = count * screens;
     self.bundle = bundle;
     self.configured = YES;
 }
