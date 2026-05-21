@@ -174,8 +174,16 @@ each):
 - **Toaster + toast sprite art:** Originally sourced from
   [Bryan Braun's After Dark CSS](https://github.com/bryanbraun/after-dark-css),
   © 1989 Berkeley Systems Inc.
-- **This fork:** Multi-monitor extension, macOS 26 compatibility,
-  expanded preferences, and the live-preview plumbing.
+- **Multi-monitor extension:** Clive Wright — shared `ToasterWorld`
+  singleton, per-monitor density scaling, coordinate-system-robust
+  screen matching for external displays.
+- **macOS 26 compatibility & preferences UI:**
+  [Jordan Eunson](https://github.com/jordaneunson) — programmatic
+  `NSView` prefs controller, sandbox-correct preferences storage in
+  the legacyScreenSaver container, cross-process live-preview poll,
+  the nine-option settings inventory (cloud cover, flight direction,
+  wing-flap speed, toast/toaster ratio, fast-toaster frequency,
+  scale-density), and the full macOS-26 investigation write-up.
 
 ## License
 
