@@ -29,6 +29,7 @@ static const CGFloat kEdgePadding   = 24;
 @property (strong) NSSlider*    toastLevelSlider;
 @property (strong) NSSlider*    cloudCoverSlider;
 @property (strong) NSButton*    scaleDensityCheckbox;
+@property (strong) NSButton*    elevenCheckbox;
 @end
 
 
@@ -92,9 +93,9 @@ static const CGFloat kEdgePadding   = 24;
     NSTextField* dirVD = nil;
     self.directionSlider = [self _appendSliderRowToStack:leftCol
                                                    title:@"Flight Direction"
-                                                minLabel:@"N"
+                                                minLabel:@"SW"
                                                 maxLabel:@"NW"
-                                                     min:0 max:7 ticks:8
+                                                     min:0 max:1 ticks:2
                                                   action:@selector(_directionChanged:)
                                             valueDisplay:&dirVD];
     self.directionValueLabel = dirVD;
@@ -134,6 +135,14 @@ static const CGFloat kEdgePadding   = 24;
                              target:self
                              action:@selector(_scaleDensityChanged:)];
     [self _appendControlRowToStack:rightCol view:self.scaleDensityCheckbox];
+
+    // The Spinal Tap homage. Overrides density / clouds / fast-frequency
+    // / speed / wing-flap with values well past the slider maxes.
+    self.elevenCheckbox =
+        [NSButton checkboxWithTitle:@"Turn it up to 11?"
+                             target:self
+                             action:@selector(_elevenChanged:)];
+    [self _appendControlRowToStack:rightCol view:self.elevenCheckbox];
 
     // Outer horizontal stack.
     NSStackView* columns = [NSStackView stackViewWithViews:@[leftCol, rightCol]];
@@ -268,6 +277,7 @@ static const CGFloat kEdgePadding   = 24;
     self.toastLevelSlider.integerValue = [self _tickForToastLevel:[ToasterDefaults getToastLevel]];
     self.cloudCoverSlider.integerValue = [ToasterDefaults getCloudCover];
     self.scaleDensityCheckbox.state    = [ToasterDefaults getScaleDensity] ? NSControlStateValueOn : NSControlStateValueOff;
+    self.elevenCheckbox.state          = [ToasterDefaults getTurnItUpTo11]  ? NSControlStateValueOn : NSControlStateValueOff;
 
     // Seed the live value display so it matches the initial slider state.
     self.directionValueLabel.stringValue = [self _directionName:[ToasterDefaults getFlightDirection]];
@@ -360,17 +370,7 @@ static const CGFloat kEdgePadding   = 24;
 
 - (NSString*)_directionName:(FlightDirection)d
 {
-    switch (d) {
-        case kFlightDirectionN:  return @"N";
-        case kFlightDirectionNE: return @"NE";
-        case kFlightDirectionE:  return @"E";
-        case kFlightDirectionSE: return @"SE";
-        case kFlightDirectionS:  return @"S";
-        case kFlightDirectionSW: return @"SW";
-        case kFlightDirectionW:  return @"W";
-        case kFlightDirectionNW: return @"NW";
-    }
-    return @"";
+    return (d == kFlightDirectionNW) ? @"NW (up-left)" : @"SW (down-left)";
 }
 
 - (void)_ratioChanged:(NSSlider*)s
@@ -396,6 +396,11 @@ static const CGFloat kEdgePadding   = 24;
 - (void)_scaleDensityChanged:(NSButton*)b
 {
     [ToasterDefaults setScaleDensity:(b.state == NSControlStateValueOn)];
+}
+
+- (void)_elevenChanged:(NSButton*)b
+{
+    [ToasterDefaults setTurnItUpTo11:(b.state == NSControlStateValueOn)];
 }
 
 - (void)_donePressed:(id)sender

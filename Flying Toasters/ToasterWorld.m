@@ -120,6 +120,18 @@
     NSUInteger areaFactor = MAX((NSUInteger)1, (NSUInteger)ceil(globalArea / largestArea));
     self.count = self.scaleDensity ? (count * areaFactor) : count;
 
+    // "Turn it up to 11" — override the visual-impact knobs with values
+    // well beyond their slider ranges. Direction, toast level, ratio, and
+    // scale-density still respect the user's choices.
+    if ([ToasterDefaults getTurnItUpTo11]) {
+        NSUInteger overrideBase = 100;
+        self.count            = self.scaleDensity ? (overrideBase * areaFactor) : overrideBase;
+        self.cloudCover       = 50;
+        self.fastFrequency    = 100;
+        self.speed            = kLightningSpeed;
+        self.wingFlapInterval = 0.020;
+    }
+
     // Toast texture cache depends on toastLevel — invalidate so it rebuilds
     // with the current level on next spawn. Toaster textures are
     // level-independent now that style is gone, so leave that cache alone.
@@ -353,16 +365,10 @@
     // Clouds drift at a leisurely pace in the horizontal direction matching
     // the toaster flight (aesthetic coherence — wind blows one way).
     // For purely-vertical flight directions, pick a random horizontal.
-    BOOL goingLeft;
-    switch (self.flightDirection) {
-        case kFlightDirectionW:
-        case kFlightDirectionNW:
-        case kFlightDirectionSW: goingLeft = YES; break;
-        case kFlightDirectionE:
-        case kFlightDirectionNE:
-        case kFlightDirectionSE: goingLeft = NO;  break;
-        default:                 goingLeft = (arc4random_uniform(2) == 0); break;
-    }
+    // Clouds drift in the same horizontal direction as the toasters; both
+    // remaining flight directions (SW, NW) are leftward, so clouds always
+    // drift left.
+    BOOL goingLeft = YES;
     CGFloat cloudSpeed = 8.0 + (CGFloat)arc4random_uniform(12);   // px/sec
     CGFloat dx = goingLeft ? -cloudSpeed : cloudSpeed;
     CGFloat startX = goingLeft ? (NSMaxX(b) + size.width) : (NSMinX(b) - size.width);
@@ -403,17 +409,8 @@
                               velocity:(CGVector*)outVelocity
 {
     NSRect b = self.globalBounds;
-    CGFloat ux = 0, uy = 0;
-    switch (direction) {
-        case kFlightDirectionN:  ux = 0;            uy = 1;            break;
-        case kFlightDirectionNE: ux = M_SQRT1_2;    uy = M_SQRT1_2;    break;
-        case kFlightDirectionE:  ux = 1;            uy = 0;            break;
-        case kFlightDirectionSE: ux = M_SQRT1_2;    uy = -M_SQRT1_2;   break;
-        case kFlightDirectionS:  ux = 0;            uy = -1;           break;
-        case kFlightDirectionSW: ux = -M_SQRT1_2;   uy = -M_SQRT1_2;   break;
-        case kFlightDirectionW:  ux = -1;           uy = 0;            break;
-        case kFlightDirectionNW: ux = -M_SQRT1_2;   uy = M_SQRT1_2;    break;
-    }
+    CGFloat ux = -M_SQRT1_2;
+    CGFloat uy = (direction == kFlightDirectionNW) ? M_SQRT1_2 : -M_SQRT1_2;
     *outVelocity = CGVectorMake(ux * speedPxPerSec, uy * speedPxPerSec);
 
     // Spawn just outside the edge the particle is flying AWAY FROM.

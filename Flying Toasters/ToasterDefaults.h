@@ -29,17 +29,11 @@ typedef NS_ENUM(NSUInteger, FlightSpeed) {
     kLightningSpeed = 1
 };
 
-// 8-way compass. Indices are slider ticks; default SW matches the original
-// down-and-left flight path.
+// Toasters fly down-left (SW) or up-left (NW). Everything else looked
+// wrong; the user prefers just these two.
 typedef NS_ENUM(NSUInteger, FlightDirection) {
-    kFlightDirectionN  = 0,
-    kFlightDirectionNE = 1,
-    kFlightDirectionE  = 2,
-    kFlightDirectionSE = 3,
-    kFlightDirectionS  = 4,
-    kFlightDirectionSW = 5,
-    kFlightDirectionW  = 6,
-    kFlightDirectionNW = 7,
+    kFlightDirectionSW = 0,
+    kFlightDirectionNW = 1,
 };
 
 @interface ToasterDefaults : NSObject
@@ -70,6 +64,9 @@ typedef NS_ENUM(NSUInteger, FlightDirection) {
 
 + (BOOL)getScaleDensity;
 + (void)setScaleDensity:(BOOL)scale;
+
++ (BOOL)getTurnItUpTo11;
++ (void)setTurnItUpTo11:(BOOL)on;
 
 // Writes the full settings dictionary (with defaults for any missing keys)
 // to disk, even if the user hasn't touched a slider. Call this from the
