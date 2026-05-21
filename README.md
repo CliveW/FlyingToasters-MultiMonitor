@@ -99,12 +99,8 @@ it came up. Useful reading if you're working on a similar project:
 
 ## Install
 
-Download `Flying Toasters.saver` from the
-[Releases](https://github.com/CliveW/FlyingToasters-MultiMonitor/releases)
-page and double-click it. System Settings will offer to install it
-under your user account.
-
-Alternatively, build it yourself:
+Build from source. A pre-notarized binary distribution may follow in
+a later release; for now the source path is the supported route:
 
 ```sh
 git clone https://github.com/CliveW/FlyingToasters-MultiMonitor
@@ -116,8 +112,10 @@ cp -R "$(xcodebuild -showBuildSettings -scheme 'Flying Toasters' -configuration 
        ~/Library/Screen\ Savers/
 ```
 
-Then in System Settings → Screen Saver, pick **Flying Toasters** and
-click **Options** to configure.
+You'll need Xcode 17 or later, and a free Apple Developer account
+configured in Xcode for the local code-signing identity. Then in
+System Settings → Screen Saver, pick **Flying Toasters** and click
+**Options** to configure.
 
 ## Build & run from source
 
