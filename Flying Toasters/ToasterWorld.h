@@ -53,7 +53,6 @@ typedef NS_ENUM(NSUInteger, FTParticleKind) {
                           speed:(FlightSpeed)speed
                           count:(NSUInteger)count
                       cloudCover:(NSUInteger)cloudCover
-                    toasterStyle:(ToasterStyle)style
                  flightDirection:(FlightDirection)direction
                       toastRatio:(NSUInteger)toastPercent
                    fastFrequency:(NSUInteger)fastPercent

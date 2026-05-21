@@ -48,7 +48,6 @@
                              speed:[ToasterDefaults getFlightSpeed]
                              count:[ToasterDefaults getNumberOfToasters]
                         cloudCover:[ToasterDefaults getCloudCover]
-                      toasterStyle:[ToasterDefaults getToasterStyle]
                    flightDirection:[ToasterDefaults getFlightDirection]
                         toastRatio:[ToasterDefaults getToastRatio]
                      fastFrequency:[ToasterDefaults getFastFrequency]

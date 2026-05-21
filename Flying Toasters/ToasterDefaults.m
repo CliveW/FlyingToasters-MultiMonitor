@@ -16,7 +16,6 @@ static NSString* const ToasterDefaultsFlightSpeedKey      = @"toaster_flight_spe
 static NSString* const ToasterDefaultsToastLevelKey       = @"toast_level";
 static NSString* const ToasterDefaultsNumberOfToastersKey = @"number_of_toasters";
 static NSString* const ToasterDefaultsCloudCoverKey       = @"cloud_cover";
-static NSString* const ToasterDefaultsToasterStyleKey     = @"toaster_style";
 static NSString* const ToasterDefaultsFlightDirectionKey  = @"flight_direction";
 static NSString* const ToasterDefaultsToastRatioKey       = @"toast_ratio";
 static NSString* const ToasterDefaultsFastFrequencyKey    = @"fast_frequency";
@@ -154,7 +153,6 @@ static NSDictionary* sCachedDict = nil;
     if (!full[ToasterDefaultsToastLevelKey])       full[ToasterDefaultsToastLevelKey]       = @(kGoldenBrownToast);
     if (!full[ToasterDefaultsNumberOfToastersKey]) full[ToasterDefaultsNumberOfToastersKey] = @(6);
     if (!full[ToasterDefaultsCloudCoverKey])       full[ToasterDefaultsCloudCoverKey]       = @(0);
-    if (!full[ToasterDefaultsToasterStyleKey])     full[ToasterDefaultsToasterStyleKey]     = @(kToasterStyleClassic);
     if (!full[ToasterDefaultsFlightDirectionKey])  full[ToasterDefaultsFlightDirectionKey]  = @(kFlightDirectionSW);
     if (!full[ToasterDefaultsToastRatioKey])       full[ToasterDefaultsToastRatioKey]       = @(50);
     if (!full[ToasterDefaultsFastFrequencyKey])    full[ToasterDefaultsFastFrequencyKey]    = @(12);
@@ -210,16 +208,6 @@ static NSDictionary* sCachedDict = nil;
 + (void)setCloudCover:(NSUInteger)count
 {
     [self _persistValue:@(count) forKey:ToasterDefaultsCloudCoverKey];
-}
-
-+ (ToasterStyle)getToasterStyle
-{
-    return (ToasterStyle)[self _uintForKey:ToasterDefaultsToasterStyleKey default:kToasterStyleClassic];
-}
-
-+ (void)setToasterStyle:(ToasterStyle)style
-{
-    [self _persistValue:@(style) forKey:ToasterDefaultsToasterStyleKey];
 }
 
 + (FlightDirection)getFlightDirection

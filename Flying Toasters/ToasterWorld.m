@@ -7,7 +7,6 @@
 //
 
 #import "ToasterWorld.h"
-#import <CoreImage/CoreImage.h>
 
 @implementation FTToasterParticle
 - (instancetype)init
@@ -36,7 +35,6 @@
 @property (assign) FlightSpeed speed;
 @property (assign) NSUInteger count;
 @property (assign) NSUInteger cloudCover;
-@property (assign) ToasterStyle toasterStyle;
 @property (assign) FlightDirection flightDirection;
 @property (assign) NSUInteger toastRatio;        // 0..100
 @property (assign) NSUInteger fastFrequency;     // 0 = disabled
@@ -49,11 +47,10 @@
 @property (assign) NSUInteger spawnIndex;
 @property (assign) NSInteger viewRefCount;
 
-// Lazy-built texture / CI caches.
+// Lazy-built texture caches.
 @property (strong) NSArray<SKTexture*>* cachedToasterTextures;
 @property (strong) NSDictionary<NSNumber*, SKTexture*>* cachedToastTextures;  // ToastLevel -> texture
 @property (strong) SKTexture* cachedCloudTexture;
-@property (strong) CIContext* cachedCIContext;
 @end
 
 
@@ -98,7 +95,6 @@
 {
     self.toastLevel       = [ToasterDefaults getToastLevel];
     self.speed            = [ToasterDefaults getFlightSpeed];
-    self.toasterStyle     = [ToasterDefaults getToasterStyle];
     self.flightDirection  = [ToasterDefaults getFlightDirection];
     self.toastRatio       = MIN([ToasterDefaults getToastRatio], (NSUInteger)100);
     self.fastFrequency    = [ToasterDefaults getFastFrequency];
@@ -121,9 +117,9 @@
     NSUInteger areaFactor = MAX((NSUInteger)1, (NSUInteger)ceil(globalArea / largestArea));
     self.count = self.scaleDensity ? (count * areaFactor) : count;
 
-    // Texture caches depend on toasterStyle / toastLevel — invalidate so
-    // they're rebuilt with the current style on next sprite spawn.
-    self.cachedToasterTextures = nil;
+    // Toast texture cache depends on toastLevel — invalidate so it rebuilds
+    // with the current level on next spawn. Toaster textures are
+    // level-independent now that style is gone, so leave that cache alone.
     self.cachedToastTextures = nil;
 }
 
@@ -140,7 +136,6 @@
                           speed:(FlightSpeed)speed
                           count:(NSUInteger)count
                       cloudCover:(NSUInteger)cloudCover
-                    toasterStyle:(ToasterStyle)style
                  flightDirection:(FlightDirection)direction
                       toastRatio:(NSUInteger)toastPercent
                    fastFrequency:(NSUInteger)fastPercent
@@ -151,7 +146,6 @@
     self.toastLevel = level;
     self.speed = speed;
     self.cloudCover = cloudCover;
-    self.toasterStyle = style;
     self.flightDirection = direction;
     self.toastRatio = MIN(toastPercent, (NSUInteger)100);
     self.fastFrequency = fastPercent;
@@ -220,13 +214,12 @@
 
     // Allow a subsequent -start to pick up fresh defaults (matters when the
     // System Settings preview re-instantiates the world between slider
-    // changes). Cached textures must also drop so a style/level change
+    // changes). Cached textures must also drop so a toast-level change
     // becomes visible without restarting the host process.
     self.configured = NO;
     self.cachedToasterTextures = nil;
     self.cachedToastTextures = nil;
     self.cachedCloudTexture = nil;
-    self.cachedCIContext = nil;
 }
 
 - (void)tickAtTime:(NSTimeInterval)now
@@ -463,8 +456,7 @@
     for (NSString* p in paths) {
         NSImage* img = [[NSImage alloc] initWithContentsOfFile:p];
         if (!img) continue;
-        NSImage* styled = [self _applyStyle:self.toasterStyle toImage:img];
-        [base addObject:[SKTexture textureWithImage:styled]];
+        [base addObject:[SKTexture textureWithImage:img]];
     }
     if (base.count != paths.count) return @[];
 
@@ -507,32 +499,6 @@
     mut[key] = tex;
     self.cachedToastTextures = mut;
     return @[tex];
-}
-
-- (NSImage*)_applyStyle:(ToasterStyle)style toImage:(NSImage*)img
-{
-    if (style == kToasterStyleClassic) return img;
-
-    CGImageRef cg = [img CGImageForProposedRect:NULL context:nil hints:nil];
-    if (!cg) return img;
-    CIImage* ci = [CIImage imageWithCGImage:cg];
-    NSString* filterName = nil;
-    switch (style) {
-        case kToasterStyleGreyscale: filterName = @"CIPhotoEffectMono"; break;
-        case kToasterStyleInverted:  filterName = @"CIColorInvert";     break;
-        default: return img;
-    }
-    CIFilter* f = [CIFilter filterWithName:filterName];
-    if (!f) return img;
-    [f setValue:ci forKey:kCIInputImageKey];
-    CIImage* out = f.outputImage;
-    if (!out) return img;
-    if (!self.cachedCIContext) self.cachedCIContext = [CIContext context];
-    CGImageRef outCg = [self.cachedCIContext createCGImage:out fromRect:out.extent];
-    if (!outCg) return img;
-    NSImage* result = [[NSImage alloc] initWithCGImage:outCg size:img.size];
-    CGImageRelease(outCg);
-    return result;
 }
 
 - (SKTexture*)_cloudTexture

@@ -29,12 +29,6 @@ typedef NS_ENUM(NSUInteger, FlightSpeed) {
     kLightningSpeed = 1
 };
 
-typedef NS_ENUM(NSUInteger, ToasterStyle) {
-    kToasterStyleClassic = 0,
-    kToasterStyleGreyscale = 1,
-    kToasterStyleInverted = 2,
-};
-
 // 8-way compass. Indices are slider ticks; default SW matches the original
 // down-and-left flight path.
 typedef NS_ENUM(NSUInteger, FlightDirection) {
@@ -61,9 +55,6 @@ typedef NS_ENUM(NSUInteger, FlightDirection) {
 
 + (NSUInteger)getCloudCover;
 + (void)setCloudCover:(NSUInteger)count;
-
-+ (ToasterStyle)getToasterStyle;
-+ (void)setToasterStyle:(ToasterStyle)style;
 
 + (FlightDirection)getFlightDirection;
 + (void)setFlightDirection:(FlightDirection)direction;

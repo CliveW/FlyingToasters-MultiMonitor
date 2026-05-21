@@ -20,8 +20,6 @@ static const CGFloat kEdgePadding   = 24;
 
 @interface FlyingToasterPreferencesController ()
 @property (strong) NSSlider*    densitySlider;
-@property (strong) NSSlider*    styleSlider;
-@property (strong) NSTextField* styleValueLabel;
 @property (strong) NSSlider*    speedSlider;
 @property (strong) NSSlider*    wingFlapSlider;
 @property (strong) NSSlider*    directionSlider;
@@ -76,16 +74,6 @@ static const CGFloat kEdgePadding   = 24;
                                               maxLabel:@"Flock"
                                                    min:1 max:20 ticks:20
                                                 action:@selector(_densityChanged:)];
-
-    NSTextField* styleVD = nil;
-    self.styleSlider = [self _appendSliderRowToStack:leftCol
-                                               title:@"Toaster Style"
-                                            minLabel:@"Classic"
-                                            maxLabel:@"Inverted"
-                                                 min:0 max:2 ticks:3
-                                              action:@selector(_styleChanged:)
-                                       valueDisplay:&styleVD];
-    self.styleValueLabel = styleVD;
 
     self.speedSlider = [self _appendSliderRowToStack:leftCol
                                                title:@"Flight Speed"
@@ -272,7 +260,6 @@ static const CGFloat kEdgePadding   = 24;
 - (void)_loadValuesFromDefaults
 {
     self.densitySlider.integerValue    = [ToasterDefaults getNumberOfToasters];
-    self.styleSlider.integerValue      = [ToasterDefaults getToasterStyle];
     self.speedSlider.integerValue      = [self _tickForFlightSpeed:[ToasterDefaults getFlightSpeed]];
     self.wingFlapSlider.integerValue   = [self _tickForWingFlapMS:[ToasterDefaults getWingFlapMS]];
     self.directionSlider.integerValue  = [ToasterDefaults getFlightDirection];
@@ -282,8 +269,7 @@ static const CGFloat kEdgePadding   = 24;
     self.cloudCoverSlider.integerValue = [ToasterDefaults getCloudCover];
     self.scaleDensityCheckbox.state    = [ToasterDefaults getScaleDensity] ? NSControlStateValueOn : NSControlStateValueOff;
 
-    // Seed the live value displays so they match the initial slider state.
-    self.styleValueLabel.stringValue     = [self _styleName:[ToasterDefaults getToasterStyle]];
+    // Seed the live value display so it matches the initial slider state.
     self.directionValueLabel.stringValue = [self _directionName:[ToasterDefaults getFlightDirection]];
 }
 
@@ -340,23 +326,6 @@ static const CGFloat kEdgePadding   = 24;
 - (void)_densityChanged:(NSSlider*)s
 {
     [ToasterDefaults setNumberOfToasters:(NSUInteger)s.integerValue];
-}
-
-- (void)_styleChanged:(NSSlider*)s
-{
-    ToasterStyle style = (ToasterStyle)s.integerValue;
-    [ToasterDefaults setToasterStyle:style];
-    self.styleValueLabel.stringValue = [self _styleName:style];
-}
-
-- (NSString*)_styleName:(ToasterStyle)style
-{
-    switch (style) {
-        case kToasterStyleClassic:   return @"Classic";
-        case kToasterStyleGreyscale: return @"Greyscale";
-        case kToasterStyleInverted:  return @"Inverted";
-    }
-    return @"";
 }
 
 - (void)_speedChanged:(NSSlider*)s
