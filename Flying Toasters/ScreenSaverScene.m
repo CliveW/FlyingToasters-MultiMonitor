@@ -7,12 +7,12 @@
 //
 
 #import "ScreenSaverScene.h"
+#import "ToasterDefaults.h"
 #import "ToasterWorld.h"
-
-static const NSTimeInterval kAnimFrameDuration = 0.085;
 
 @interface ScreenSaverScene ()
 @property (strong) NSMutableDictionary<NSNumber*, SKSpriteNode*>* nodeMap;
+@property (assign) NSTimeInterval wingFlapInterval;
 @end
 
 @implementation ScreenSaverScene
@@ -21,8 +21,23 @@ static const NSTimeInterval kAnimFrameDuration = 0.085;
 {
     if (self = [super initWithSize:size]) {
         _nodeMap = [NSMutableDictionary dictionary];
+        _wingFlapInterval = MAX(0.020, [ToasterDefaults getWingFlapMS] / 1000.0);
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(_prefsChanged:)
+                                                     name:FlyingToastersPrefsChangedNotification
+                                                   object:nil];
     }
     return self;
+}
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)_prefsChanged:(NSNotification*)note
+{
+    self.wingFlapInterval = MAX(0.020, [ToasterDefaults getWingFlapMS] / 1000.0);
 }
 
 - (BOOL)acceptsFirstResponder
@@ -56,6 +71,9 @@ static const NSTimeInterval kAnimFrameDuration = 0.085;
         SKSpriteNode* node = self.nodeMap[key];
         if (!node) {
             node = [SKSpriteNode spriteNodeWithTexture:p.textures.firstObject];
+            node.alpha = p.alpha;
+            node.zPosition = p.zPosition;
+            node.size = p.size;
             self.nodeMap[key] = node;
             [self addChild:node];
         }
@@ -66,7 +84,7 @@ static const NSTimeInterval kAnimFrameDuration = 0.085;
 
         if (p.animatesFrames && p.textures.count > 1) {
             NSUInteger frame =
-                (NSUInteger)floor((now - p.birthTime) / kAnimFrameDuration) % p.textures.count;
+                (NSUInteger)floor((now - p.birthTime) / self.wingFlapInterval) % p.textures.count;
             SKTexture* tex = p.textures[frame];
             if (node.texture != tex) node.texture = tex;
         }

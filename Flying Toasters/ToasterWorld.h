@@ -18,14 +18,23 @@
 #import <SpriteKit/SpriteKit.h>
 #import "ToasterDefaults.h"
 
+typedef NS_ENUM(NSUInteger, FTParticleKind) {
+    FTParticleKindToaster = 0,
+    FTParticleKindToast   = 1,
+    FTParticleKindCloud   = 2,
+};
+
 @interface FTToasterParticle : NSObject
 @property (assign) uint64_t particleId;
+@property (assign) FTParticleKind kind;
 @property (assign) CGPoint origin;            // AppKit global coords at birth
 @property (assign) CGVector velocity;         // pixels/sec
 @property (assign) NSTimeInterval birthTime;  // CFAbsoluteTime
 @property (strong) NSArray<SKTexture*>* textures;
-@property (assign) BOOL animatesFrames;       // toasters yes, toast no
+@property (assign) BOOL animatesFrames;       // toasters yes, toast/clouds no
 @property (assign) CGSize size;
+@property (assign) CGFloat alpha;             // clouds <1
+@property (assign) CGFloat zPosition;         // clouds behind, toasters front
 - (CGPoint)positionAtTime:(NSTimeInterval)t;
 @end
 
@@ -43,7 +52,13 @@
 - (void)configureWithToastLevel:(ToastLevel)level
                           speed:(FlightSpeed)speed
                           count:(NSUInteger)count
-                         bundle:(NSBundle*)bundle;
+                      cloudCover:(NSUInteger)cloudCover
+                    toasterStyle:(ToasterStyle)style
+                 flightDirection:(FlightDirection)direction
+                      toastRatio:(NSUInteger)toastPercent
+                   fastFrequency:(NSUInteger)fastPercent
+                    scaleDensity:(BOOL)scaleDensity
+                          bundle:(NSBundle*)bundle;
 
 - (void)start;
 - (void)stop;
