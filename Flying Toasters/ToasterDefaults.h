@@ -76,4 +76,10 @@ typedef NS_ENUM(NSUInteger, FlightDirection) {
 // prefs UI so the on-disk file always exists for the animation host.
 + (void)ensurePersisted;
 
+// Drops the per-process dictionary cache. Subsequent getters re-read from
+// disk. Useful for an animation host that wants to pick up settings
+// written by a sibling prefs-UI process (in-process NSNotification can't
+// cross process boundaries).
++ (void)invalidateCache;
+
 @end

@@ -46,6 +46,8 @@
 @property (assign) NSTimeInterval nextSpawnTime;
 @property (assign) NSUInteger spawnIndex;
 @property (assign) NSInteger viewRefCount;
+@property (assign) NSTimeInterval wingFlapInterval;     // overrides readonly in .h
+@property (assign) NSTimeInterval lastPrefsRescan;
 
 // Lazy-built texture caches.
 @property (strong) NSArray<SKTexture*>* cachedToasterTextures;
@@ -93,13 +95,14 @@
 // Cheap — just a dozen NSDictionary lookups + an NSScreen.screens walk.
 - (void)_applyCurrentDefaults
 {
-    self.toastLevel       = [ToasterDefaults getToastLevel];
-    self.speed            = [ToasterDefaults getFlightSpeed];
-    self.flightDirection  = [ToasterDefaults getFlightDirection];
-    self.toastRatio       = MIN([ToasterDefaults getToastRatio], (NSUInteger)100);
-    self.fastFrequency    = [ToasterDefaults getFastFrequency];
-    self.scaleDensity     = [ToasterDefaults getScaleDensity];
-    self.cloudCover       = [ToasterDefaults getCloudCover];
+    self.toastLevel        = [ToasterDefaults getToastLevel];
+    self.speed             = [ToasterDefaults getFlightSpeed];
+    self.flightDirection   = [ToasterDefaults getFlightDirection];
+    self.toastRatio        = MIN([ToasterDefaults getToastRatio], (NSUInteger)100);
+    self.fastFrequency     = [ToasterDefaults getFastFrequency];
+    self.scaleDensity      = [ToasterDefaults getScaleDensity];
+    self.cloudCover        = [ToasterDefaults getCloudCover];
+    self.wingFlapInterval  = MAX(0.020, [ToasterDefaults getWingFlapMS] / 1000.0);
 
     NSUInteger count = [ToasterDefaults getNumberOfToasters];
     NSArray<NSScreen*>* allScreens = [NSScreen screens];
@@ -178,6 +181,7 @@
     if (NSIsEmptyRect(self.globalBounds)) {
         self.globalBounds = computedBounds;
     }
+    self.wingFlapInterval = MAX(0.020, [ToasterDefaults getWingFlapMS] / 1000.0);
 
     self.configured = YES;
 }
@@ -226,6 +230,17 @@
 {
     if (!self.isRunning) return;
     if (NSIsEmptyRect(self.globalBounds)) return;
+
+    // Cross-process prefs refresh. The Options UI and the preview/animator
+    // can live in separate legacyScreenSaver.appex processes on macOS 26,
+    // so the in-process FlyingToastersPrefsChangedNotification doesn't
+    // reach us. Re-reading the plist once a second keeps the running
+    // animation in sync with slider movements happening elsewhere.
+    if (now - self.lastPrefsRescan > 1.0) {
+        self.lastPrefsRescan = now;
+        [ToasterDefaults invalidateCache];
+        [self _applyCurrentDefaults];
+    }
 
     [self _reapAndSpawnToastersAtTime:now];
     [self _reapAndSpawnCloudsAtTime:now];

@@ -68,5 +68,6 @@ typedef NS_ENUM(NSUInteger, FTParticleKind) {
 @property (readonly) NSArray<FTToasterParticle*>* particles;
 @property (readonly) NSRect globalBounds;
 @property (readonly) BOOL isRunning;
+@property (readonly) NSTimeInterval wingFlapInterval;  // seconds per frame
 
 @end

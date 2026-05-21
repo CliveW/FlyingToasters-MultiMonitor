@@ -7,12 +7,10 @@
 //
 
 #import "ScreenSaverScene.h"
-#import "ToasterDefaults.h"
 #import "ToasterWorld.h"
 
 @interface ScreenSaverScene ()
 @property (strong) NSMutableDictionary<NSNumber*, SKSpriteNode*>* nodeMap;
-@property (assign) NSTimeInterval wingFlapInterval;
 @end
 
 @implementation ScreenSaverScene
@@ -21,23 +19,8 @@
 {
     if (self = [super initWithSize:size]) {
         _nodeMap = [NSMutableDictionary dictionary];
-        _wingFlapInterval = MAX(0.020, [ToasterDefaults getWingFlapMS] / 1000.0);
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(_prefsChanged:)
-                                                     name:FlyingToastersPrefsChangedNotification
-                                                   object:nil];
     }
     return self;
-}
-
-- (void)dealloc
-{
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
-}
-
-- (void)_prefsChanged:(NSNotification*)note
-{
-    self.wingFlapInterval = MAX(0.020, [ToasterDefaults getWingFlapMS] / 1000.0);
 }
 
 - (BOOL)acceptsFirstResponder
@@ -62,6 +45,8 @@
     [world tickAtTime:now];
 
     NSArray<FTToasterParticle*>* particles = world.particles;
+    NSTimeInterval flap = world.wingFlapInterval;
+    if (flap < 0.020) flap = 0.085;
     NSMutableSet<NSNumber*>* seen = [NSMutableSet setWithCapacity:particles.count];
 
     for (FTToasterParticle* p in particles) {
@@ -84,7 +69,7 @@
 
         if (p.animatesFrames && p.textures.count > 1) {
             NSUInteger frame =
-                (NSUInteger)floor((now - p.birthTime) / self.wingFlapInterval) % p.textures.count;
+                (NSUInteger)floor((now - p.birthTime) / flap) % p.textures.count;
             SKTexture* tex = p.textures[frame];
             if (node.texture != tex) node.texture = tex;
         }

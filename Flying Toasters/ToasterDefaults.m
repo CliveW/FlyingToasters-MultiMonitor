@@ -139,6 +139,11 @@ static NSDictionary* sCachedDict = nil;
                       object:nil];
 }
 
++ (void)invalidateCache
+{
+    sCachedDict = nil;
+}
+
 // Public: write the entire current dict to disk, even if all values are
 // defaults. Called when the prefs UI opens so the on-disk file always
 // exists for the animation host to read. Idempotent — no-op cost is one
