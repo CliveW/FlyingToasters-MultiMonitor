@@ -316,6 +316,55 @@ Defer until later:
 4. Test cross-host visual hand-off — does a toaster crossing the seam
    look continuous?
 
+## Reality check — what "seamless cross-host transitions" actually means
+
+After writing the section above I went back and asked honestly: "could
+we have multi-host multi-screen transitions, true to where a toaster
+leaves one screen and exits the other, with no issues at all?" The
+honest answer is no. The MVP gets close to a *plausible illusion*, but
+*pixel-faithful spatial continuity across hosts* runs into several
+issues that no code path makes go away on its own.
+
+Ranked by how visible each is to an observer at the seam:
+
+1. **No automatic spatial truth.** macOS gives us no way to learn where
+   one Mac's screens sit relative to a peer's in physical space. Auto-tile
+   horizontally is a *convention*, not a fact. True continuity needs a
+   manual room-map declared by the user.
+2. **Physical bezels and gaps.** Even with perfect spatial config, two
+   laptops on a desk have several cm of dead space between their displays.
+   A toaster crossing that gap will appear to teleport across it — only
+   acceptable when the screens are nearly touching.
+3. **Clock skew.** `position = origin + velocity × (t − birthTime)`. At
+   typical LAN NTP skew (30 ms) and ~200 px/sec, the handoff is ~6 px off.
+   Active drift-correction over MC can shrink this to ~5 ms, never zero.
+4. **Process churn on macOS 26.** `legacyScreenSaver.appex` dies between
+   preview, activation, and reactivation. Each new process spawn re-runs
+   discovery + handshake (1–3 s of single-host mode every screen unlock).
+5. **Cold-start window.** During the first 1–3 seconds after the saver
+   activates, the mesh isn't formed yet. Brief previews may never show
+   any peer toasters.
+6. **Wi-Fi reliability.** Unreliable channel = lost spawn events on flaky
+   networks. Reliable channel = added latency that makes (5) worse.
+7. **Resolution / scale mismatch.** 5K Retina ↔ 1080p. Picking whether
+   the global space is in points, pixels, or normalized units shows
+   visible artifacts at the seam in every choice.
+8. **Sandbox unverified.** The entitlements look right, but a real spike
+   inside `legacyScreenSaver.appex` is still required before declaring
+   the whole approach viable.
+
+### What's actually deliverable
+
+| Promise | Verdict |
+|---|---|
+| "Toasters appear at the right edge of my screen, look like they came from the room next door" | ✓ MVP scope. Auto-tile, ~1-second discovery, looks great in casual viewing. |
+| "I can configure exactly where my friend's Mac is and have geometric continuity at the seam" | ✓ With manual room-map UI. Worth doing if the feature catches on. |
+| "Pixel-perfect, frame-perfect continuous projection across the room as if every screen were one piece of glass" | ✗ A research project, not a feature. Physical bezels + clock skew + process churn make this aspirational at best. |
+
+**Bottom line for a teammate:** the MVP makes it *look like the toasters
+are flying through the room*. Most observers won't notice it isn't
+spatially faithful. We should ship that and never claim more.
+
 ## Open questions for next session
 
 - Do we care about same-iCloud-account-only discovery (like AirDrop in
