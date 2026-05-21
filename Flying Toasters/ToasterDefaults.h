@@ -65,9 +65,6 @@ typedef NS_ENUM(NSUInteger, FlightDirection) {
 + (BOOL)getScaleDensity;
 + (void)setScaleDensity:(BOOL)scale;
 
-+ (BOOL)getTurnItUpTo11;
-+ (void)setTurnItUpTo11:(BOOL)on;
-
 // Writes the full settings dictionary (with defaults for any missing keys)
 // to disk, even if the user hasn't touched a slider. Call this from the
 // prefs UI so the on-disk file always exists for the animation host.

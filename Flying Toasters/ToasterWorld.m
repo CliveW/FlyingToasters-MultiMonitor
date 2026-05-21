@@ -120,18 +120,6 @@
     NSUInteger areaFactor = MAX((NSUInteger)1, (NSUInteger)ceil(globalArea / largestArea));
     self.count = self.scaleDensity ? (count * areaFactor) : count;
 
-    // "Turn it up to 11" — override the visual-impact knobs with values
-    // well beyond their slider ranges. Direction, toast level, ratio, and
-    // scale-density still respect the user's choices.
-    if ([ToasterDefaults getTurnItUpTo11]) {
-        NSUInteger overrideBase = 100;
-        self.count            = self.scaleDensity ? (overrideBase * areaFactor) : overrideBase;
-        self.cloudCover       = 50;
-        self.fastFrequency    = 100;
-        self.speed            = kLightningSpeed;
-        self.wingFlapInterval = 0.020;
-    }
-
     // Toast texture cache depends on toastLevel — invalidate so it rebuilds
     // with the current level on next spawn. Toaster textures are
     // level-independent now that style is gone, so leave that cache alone.

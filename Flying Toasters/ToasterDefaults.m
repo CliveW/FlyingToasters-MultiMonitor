@@ -21,7 +21,6 @@ static NSString* const ToasterDefaultsToastRatioKey       = @"toast_ratio";
 static NSString* const ToasterDefaultsFastFrequencyKey    = @"fast_frequency";
 static NSString* const ToasterDefaultsWingFlapMSKey       = @"wing_flap_ms";
 static NSString* const ToasterDefaultsScaleDensityKey     = @"scale_density";
-static NSString* const ToasterDefaultsTurnItUpTo11Key      = @"turn_it_up_to_11";
 
 @implementation ToasterDefaults
 
@@ -164,7 +163,6 @@ static NSDictionary* sCachedDict = nil;
     if (!full[ToasterDefaultsFastFrequencyKey])    full[ToasterDefaultsFastFrequencyKey]    = @(12);
     if (!full[ToasterDefaultsWingFlapMSKey])       full[ToasterDefaultsWingFlapMSKey]       = @(85);
     if (!full[ToasterDefaultsScaleDensityKey])     full[ToasterDefaultsScaleDensityKey]     = @YES;
-    if (!full[ToasterDefaultsTurnItUpTo11Key])     full[ToasterDefaultsTurnItUpTo11Key]     = @NO;
 
     sCachedDict = [full copy];
     os_log(_ftLog(), "ensurePersisted writing %lu keys", (unsigned long)full.count);
@@ -269,17 +267,6 @@ static NSDictionary* sCachedDict = nil;
 + (void)setScaleDensity:(BOOL)scale
 {
     [self _persistValue:@(scale) forKey:ToasterDefaultsScaleDensityKey];
-}
-
-+ (BOOL)getTurnItUpTo11
-{
-    NSNumber* n = [self _load][ToasterDefaultsTurnItUpTo11Key];
-    return n ? [n boolValue] : NO;
-}
-
-+ (void)setTurnItUpTo11:(BOOL)on
-{
-    [self _persistValue:@(on) forKey:ToasterDefaultsTurnItUpTo11Key];
 }
 
 @end
