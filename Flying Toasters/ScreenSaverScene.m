@@ -9,8 +9,6 @@
 #import "ScreenSaverScene.h"
 #import "ToasterWorld.h"
 
-static const NSTimeInterval kAnimFrameDuration = 0.085;
-
 @interface ScreenSaverScene ()
 @property (strong) NSMutableDictionary<NSNumber*, SKSpriteNode*>* nodeMap;
 @end
@@ -47,6 +45,8 @@ static const NSTimeInterval kAnimFrameDuration = 0.085;
     [world tickAtTime:now];
 
     NSArray<FTToasterParticle*>* particles = world.particles;
+    NSTimeInterval flap = world.wingFlapInterval;
+    if (flap < 0.020) flap = 0.085;
     NSMutableSet<NSNumber*>* seen = [NSMutableSet setWithCapacity:particles.count];
 
     for (FTToasterParticle* p in particles) {
@@ -56,6 +56,9 @@ static const NSTimeInterval kAnimFrameDuration = 0.085;
         SKSpriteNode* node = self.nodeMap[key];
         if (!node) {
             node = [SKSpriteNode spriteNodeWithTexture:p.textures.firstObject];
+            node.alpha = p.alpha;
+            node.zPosition = p.zPosition;
+            node.size = p.size;
             self.nodeMap[key] = node;
             [self addChild:node];
         }
@@ -66,7 +69,7 @@ static const NSTimeInterval kAnimFrameDuration = 0.085;
 
         if (p.animatesFrames && p.textures.count > 1) {
             NSUInteger frame =
-                (NSUInteger)floor((now - p.birthTime) / kAnimFrameDuration) % p.textures.count;
+                (NSUInteger)floor((now - p.birthTime) / flap) % p.textures.count;
             SKTexture* tex = p.textures[frame];
             if (node.texture != tex) node.texture = tex;
         }

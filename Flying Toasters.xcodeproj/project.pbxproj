@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		6F1F918E24A2EC0A00328849 /* FlyingToasterPreferencesController.xib in Resources */ = {isa = PBXBuildFile; fileRef = ABF4BEF62234F6CE000D5A44 /* FlyingToasterPreferencesController.xib */; };
 		AB3BE46A2234FDE1004A6626 /* FlyingToasterPreferencesController.m in Sources */ = {isa = PBXBuildFile; fileRef = ABF4BEF52234F6CE000D5A44 /* FlyingToasterPreferencesController.m */; };
 		AB3BE46B2234FDE1004A6626 /* FlyingToasterScreenSaverView.m in Sources */ = {isa = PBXBuildFile; fileRef = ABF4BEF82234F6CE000D5A44 /* FlyingToasterScreenSaverView.m */; };
 		AB3BE46C2234FDE1004A6626 /* FlyingToastersView.m in Sources */ = {isa = PBXBuildFile; fileRef = ABF4BEFA2234F6CE000D5A44 /* FlyingToastersView.m */; };
@@ -17,7 +16,6 @@
 		AB3BE4712234FE14004A6626 /* Textures in Resources */ = {isa = PBXBuildFile; fileRef = AB3BE46F2234FE0D004A6626 /* Textures */; };
 		ABF4BF0B2234F6CE000D5A44 /* FlyingToasterPreferencesController.h in Headers */ = {isa = PBXBuildFile; fileRef = ABF4BEF42234F6CE000D5A44 /* FlyingToasterPreferencesController.h */; };
 		ABF4BF0C2234F6CE000D5A44 /* FlyingToasterPreferencesController.m in Sources */ = {isa = PBXBuildFile; fileRef = ABF4BEF52234F6CE000D5A44 /* FlyingToasterPreferencesController.m */; };
-		ABF4BF0D2234F6CE000D5A44 /* FlyingToasterPreferencesController.xib in Resources */ = {isa = PBXBuildFile; fileRef = ABF4BEF62234F6CE000D5A44 /* FlyingToasterPreferencesController.xib */; };
 		ABF4BF0E2234F6CE000D5A44 /* FlyingToasterScreenSaverView.h in Headers */ = {isa = PBXBuildFile; fileRef = ABF4BEF72234F6CE000D5A44 /* FlyingToasterScreenSaverView.h */; };
 		ABF4BF0F2234F6CE000D5A44 /* FlyingToasterScreenSaverView.m in Sources */ = {isa = PBXBuildFile; fileRef = ABF4BEF82234F6CE000D5A44 /* FlyingToasterScreenSaverView.m */; };
 		ABF4BF102234F6CE000D5A44 /* FlyingToastersView.h in Headers */ = {isa = PBXBuildFile; fileRef = ABF4BEF92234F6CE000D5A44 /* FlyingToastersView.h */; };
@@ -43,7 +41,6 @@
 		ABF4BEEA2234F602000D5A44 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		ABF4BEF42234F6CE000D5A44 /* FlyingToasterPreferencesController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FlyingToasterPreferencesController.h; sourceTree = "<group>"; };
 		ABF4BEF52234F6CE000D5A44 /* FlyingToasterPreferencesController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FlyingToasterPreferencesController.m; sourceTree = "<group>"; };
-		ABF4BEF62234F6CE000D5A44 /* FlyingToasterPreferencesController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = FlyingToasterPreferencesController.xib; sourceTree = "<group>"; };
 		ABF4BEF72234F6CE000D5A44 /* FlyingToasterScreenSaverView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FlyingToasterScreenSaverView.h; sourceTree = "<group>"; };
 		ABF4BEF82234F6CE000D5A44 /* FlyingToasterScreenSaverView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FlyingToasterScreenSaverView.m; sourceTree = "<group>"; };
 		ABF4BEF92234F6CE000D5A44 /* FlyingToastersView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FlyingToastersView.h; sourceTree = "<group>"; };
@@ -108,7 +105,6 @@
 				FB0A17F62FBC2C7800FC69F2 /* ToasterWorld.m */,
 				ABF4BEF42234F6CE000D5A44 /* FlyingToasterPreferencesController.h */,
 				ABF4BEF52234F6CE000D5A44 /* FlyingToasterPreferencesController.m */,
-				ABF4BEF62234F6CE000D5A44 /* FlyingToasterPreferencesController.xib */,
 				ABF4BEF72234F6CE000D5A44 /* FlyingToasterScreenSaverView.h */,
 				ABF4BEF82234F6CE000D5A44 /* FlyingToasterScreenSaverView.m */,
 				ABF4BEF92234F6CE000D5A44 /* FlyingToastersView.h */,
@@ -219,6 +215,8 @@
 				TargetAttributes = {
 					ABF4BEE52234F602000D5A44 = {
 						CreatedOnToolsVersion = 6.2;
+						DevelopmentTeam = 2QA67VV372;
+						ProvisioningStyle = Automatic;
 					};
 					ABF4BF242234F849000D5A44 = {
 						CreatedOnToolsVersion = 6.2;
@@ -252,7 +250,6 @@
 				AB3BE4702234FE0D004A6626 /* Textures in Resources */,
 				ABF4BF1D2234F6CE000D5A44 /* thumbnail.png in Resources */,
 				ABF4BF1E2234F6CE000D5A44 /* thumbnail@2x.png in Resources */,
-				ABF4BF0D2234F6CE000D5A44 /* FlyingToasterPreferencesController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -260,7 +257,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6F1F918E24A2EC0A00328849 /* FlyingToasterPreferencesController.xib in Resources */,
 				AB3BE4712234FE14004A6626 /* Textures in Resources */,
 				ABF4BF2F2234F849000D5A44 /* Images.xcassets in Resources */,
 				ABF4BF322234F849000D5A44 /* MainMenu.xib in Resources */,
@@ -359,7 +355,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -407,7 +403,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 			};
@@ -416,10 +412,14 @@
 		ABF4BEF22234F602000D5A44 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 2QA67VV372;
 				INFOPLIST_FILE = "Flying Toasters/Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Screen Savers";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				WRAPPER_EXTENSION = saver;
 			};
 			name = Debug;
@@ -427,10 +427,14 @@
 		ABF4BEF32234F602000D5A44 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 2QA67VV372;
 				INFOPLIST_FILE = "Flying Toasters/Info.plist";
 				INSTALL_PATH = "$(HOME)/Library/Screen Savers";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				WRAPPER_EXTENSION = saver;
 			};
 			name = Release;

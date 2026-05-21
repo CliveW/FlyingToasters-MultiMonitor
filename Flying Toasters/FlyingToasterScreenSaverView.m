@@ -21,7 +21,7 @@ static NSNotificationName const ScreenSaverWillStopNotificationName = @"com.appl
 - (instancetype)initWithFrame:(NSRect)frame isPreview:(BOOL)isPreview
 {
     if (self = [super initWithFrame:frame isPreview:isPreview]) {
-        [self setAnimationTimeInterval:1/30.0];
+        [self setAnimationTimeInterval:1/60.0];
         
         _ftv = [[FlyingToastersView alloc] init];
         _ftv.frame = NSMakeRect(0, 0, frame.size.width, frame.size.height);
@@ -47,11 +47,6 @@ static NSNotificationName const ScreenSaverWillStopNotificationName = @"com.appl
 - (void)startAnimation
 {
     [super startAnimation];
-
-    self.ftv.toastLevel = [ToasterDefaults getToastLevel];
-    self.ftv.speed = [ToasterDefaults getFlightSpeed];
-    self.ftv.numOfToasters = [ToasterDefaults getNumberOfToasters];
-
     [self _captureScreenAndStart:0];
 }
 
@@ -116,9 +111,7 @@ static NSNotificationName const ScreenSaverWillStopNotificationName = @"com.appl
 
 - (NSWindow*)configureSheet
 {
-    _prefsController =
-    [[FlyingToasterPreferencesController alloc] initWithWindowNibName:@"FlyingToasterPreferencesController"];
-    
+    _prefsController = [[FlyingToasterPreferencesController alloc] init];
     return _prefsController.window;
 }
 

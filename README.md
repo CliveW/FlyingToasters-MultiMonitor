@@ -1,60 +1,182 @@
 # Flying Toasters — Multi-Monitor
 
-A multi-monitor enhancement of [Robert Venturini's FlyingToasters](https://github.com/robertventurini/FlyingToasters), the macOS screensaver that recreates the iconic After Dark 2.0 flying toasters.
+> macOS screensaver. One shared swarm of After-Dark-style flying toasters
+> that crosses every attached display, with a full set of live-preview
+> options. Targets macOS 26 (Tahoe).
 
-In the original, each attached display runs an independent population of toasters — sprites that exit one monitor never appear on another. This fork unifies all displays into one virtual desktop: toasters fly **across** monitor boundaries, exiting one screen and arriving on the next at the matching position.
+A substantial extension of [Robert Venturini's FlyingToasters](https://github.com/robertventurini/FlyingToasters)
+that turns the saver from a single-display recreation into a true
+multi-monitor experience with rich, immediately-applied settings.
 
 ![Image of FlyingToasters](https://github.com/robertventurini/FlyingToasters/blob/master/FlyingToasters.gif)
 
-## What's new
+## What this fork adds
 
-- **Shared world across all displays.** A process-wide `ToasterWorld` singleton owns the toaster population. Each `ScreenSaverView` registers its `NSScreen` frame and renders its slice of the same world. Sprite positions are pure functions of `CFAbsoluteTime`, so per-display scenes stay in sync without explicit coordination.
-- **Density scales with virtual-desktop area.** The "Number of Toasters" preference is treated as a per-monitor density and multiplied by `globalDesktopArea / largestSingleScreenArea` so layouts with gaps (T-shapes, L-shapes) still feel populated.
-- **Coordinate-system-robust screen matching.** For external displays where `NSWindow.screen` returns `nil` and `NSScreenNumber` is unavailable, the matching `NSScreen` is recovered by comparing `NSWindow.frame.origin.x + size` against `NSScreen.frame` — avoiding the AppKit/Quartz coordinate-system mismatch that those windows otherwise present.
+### One shared world across every display
+
+In the original, each attached display ran an independent population of
+toasters — sprites that exited one monitor never appeared on another.
+Here, a process-wide [`ToasterWorld`](Flying%20Toasters/ToasterWorld.m)
+singleton owns the entire toaster + cloud population. Each
+[`ScreenSaverView`](Flying%20Toasters/FlyingToasterScreenSaverView.m)
+registers its `NSScreen` frame and renders its slice of the same world.
+Sprite positions are pure functions of `CFAbsoluteTime`, so per-display
+scenes stay in sync without any explicit coordination.
+
+The "Number of Toasters" preference is treated as a per-monitor density
+and multiplied by `globalDesktopArea / largestSingleScreenArea`, so even
+L-shaped or T-shaped layouts with display gaps stay populated.
+
+### Nine live options
+
+Every setting applies to the running preview within ~1 second of moving
+the slider — no need to close System Settings to see your change. All
+controls are sliders (or checkbox) with tick marks; no inscrutable
+numeric inputs.
+
+| Setting | Range | What it does |
+|---|---|---|
+| **Toasters per Display** | 1 – 20 | Density of the swarm |
+| **Flight Speed** | Slow → Fast (5 ticks: Snail / Slow / Medium / Fast / Lightning) | How quickly each sprite traverses its own diagonal |
+| **Wing-Flap Speed** | Slow → Fast (9 ticks, 200–40 ms/frame) | How fast the toasters flap their wings |
+| **Flight Direction** | SW ↔ NW (with live label below: "down-left" / "up-left") | Which way the swarm flies |
+| **Toast / Toaster Ratio** | 0 – 100 % | Probabilistic mix of toast vs intact toasters |
+| **Fast Toaster Frequency** | Off → 100 % | Chance any given toaster spawns as the "fast" variant |
+| **Toast Level** | Light / Golden / Dark / Burnt | Browning level applied to toast sprites |
+| **Cloud Cover** | Clear → Overcast (0 – 20) | Procedural cloud sprites drifting in a parallax layer behind the toasters |
+| **Constant density across displays** | checkbox | Scale the toaster count so each display gets the same density; otherwise the slider value is the *total* population |
+
+### macOS 26 (Tahoe) compatibility
+
+macOS 26 introduced a fundamentally new screensaver hosting model —
+`legacyScreenSaver.appex` is now a sandboxed App Extension with sharp
+limitations on file-system writes, nib loading, and process lifetime.
+The Apple-shipped legacy `.saver` bundles (e.g. `FloatingMessage`) gave
+up entirely and now ship without configure sheets at all. This fork
+keeps the configure sheet alive on macOS 26 by:
+
+- **Programmatic UI.** The xib is gone. The prefs window is now an
+  `NSView` hierarchy built in code, which sidesteps a class of macOS 26
+  nib-loading bugs that left other legacy savers showing the generic
+  "no options available" sheet.
+- **Sandbox-correct preferences storage.** Writes go to
+  `NSApplicationSupportDirectory` (sandbox-redirected to the
+  `legacyScreenSaver.appex` container — `~/Library/Containers/com.apple.ScreenSaver.Engine.legacyScreenSaver/Data/Library/Application Support/Flying Toasters/prefs.plist`),
+  which is the one location the saver host is allowed to write. The
+  `~/Library/Preferences/ByHost/` path that older savers use returns
+  EPERM under macOS 26.
+- **Cross-process live preview.** The Options UI and the running
+  preview animator can spawn into separate `legacyScreenSaver.appex`
+  processes, so the in-process `NSNotification` we use for instant apply
+  can't reach the renderer. To get the live-preview behaviour, the
+  animation loop polls the prefs plist once per second on a wall-clock
+  throttle (one ~290-byte read; negligible cost).
+- **macOS 26 deployment target.** No legacy code paths or `@available`
+  branches for older OSes.
+
+### Investigation notes
+
+While building this, every non-trivial macOS-26 quirk was documented as
+it came up. Useful reading if you're working on a similar project:
+
+- [`docs/macos26-prefs-investigation.md`](docs/macos26-prefs-investigation.md)
+  — the full multi-day investigation into why `.saver` configure
+  sheets fail on macOS 26, where prefs writes actually go inside the
+  new sandboxed hosts, and what works.
+- [`docs/multi-host-bonjour.md`](docs/multi-host-bonjour.md) — design
+  notes for a future direction: Bonjour/MultipeerConnectivity-bridged
+  multi-Mac swarms where toasters fly across hosts on the same LAN.
 
 ## Requirements
 
-- macOS 14 (Sonoma) or later. The architecture relies on `legacyScreenSaver` hosting every per-display `ScreenSaverView` instance in a single process, which is the behaviour from Sonoma onwards. On older macOS versions the screensaver will still install and run, but each display will revert to its own independent toaster population.
-- Apple Silicon or Intel Mac. Tested on Apple Silicon with up to 4 displays.
+- macOS 26 (Tahoe) or later. Deployment target is `26.0`.
+  - On macOS 14–15 the architecture relies on `legacyScreenSaver`
+    hosting every per-display `ScreenSaverView` instance in a single
+    process, which is the behaviour from Sonoma onwards; the saver
+    will install and run but most of the macOS-26-specific fixes
+    won't apply.
+- Apple Silicon or Intel Mac. Universal `arm64 + x86_64` binary.
 
-## Build & install
+## Install
 
-The project is a vanilla Objective-C Xcode `.saver` target. Before building you'll need to set your own Apple Developer team under Signing & Capabilities — the public repo intentionally ships without one.
+Download `Flying Toasters.saver` from the
+[Releases](https://github.com/CliveW/FlyingToasters-MultiMonitor/releases)
+page and double-click it. System Settings will offer to install it
+under your user account.
+
+Alternatively, build it yourself:
 
 ```sh
-git clone https://github.com/CliveW/FlyingToasters-MultiMonitor.git
+git clone https://github.com/CliveW/FlyingToasters-MultiMonitor
 cd FlyingToasters-MultiMonitor
-open "Flying Toasters.xcodeproj"
+xcodebuild -project "Flying Toasters.xcodeproj" \
+           -scheme "Flying Toasters" \
+           -configuration Release build
+cp -R "$(xcodebuild -showBuildSettings -scheme 'Flying Toasters' -configuration Release | awk -F' = ' '/ BUILT_PRODUCTS_DIR /{print $2}')/Flying Toasters.saver" \
+       ~/Library/Screen\ Savers/
 ```
 
-In Xcode, select the **Flying Toasters** target → Signing & Capabilities → pick your team. Then:
+Then in System Settings → Screen Saver, pick **Flying Toasters** and
+click **Options** to configure.
 
-```sh
-xcodebuild -scheme "Flying Toasters" -configuration Release \
-  -derivedDataPath build clean build
-cp -R "build/Build/Products/Release/Flying Toasters.saver" \
-      ~/Library/Screen\ Savers/
-```
+## Build & run from source
 
-Quit System Settings before installing — macOS holds a lock on `.saver` bundles while it's open and silently keeps the old code otherwise. Then select Flying Toasters in System Settings → Screen Saver.
+Open `Flying Toasters.xcodeproj` in Xcode 17 or later. The
+`Flying Toasters` scheme builds the `.saver` bundle directly into
+`~/Library/Screen Savers/` via the project's `INSTALL_PATH`.
 
-To test full-screen without waiting for the idle timer:
+The `Flying Toaster Test` scheme is a regular `.app` that hosts the
+saver view full-screen for faster iteration — useful when you don't
+want to wait for System Settings to pick up bundle changes.
 
-```sh
-open -a ScreenSaverEngine
-```
+## Architecture in one paragraph
 
-## Caveats and known behaviours
+`FlyingToasterScreenSaverView` is the `ScreenSaverView` subclass macOS
+instantiates per display. It hosts a SpriteKit
+[`FlyingToastersView`](Flying%20Toasters/FlyingToastersView.m) which
+presents a [`ScreenSaverScene`](Flying%20Toasters/ScreenSaverScene.m).
+The scene queries a process-wide
+[`ToasterWorld`](Flying%20Toasters/ToasterWorld.m) singleton for the
+current particle set each frame and renders the slice of those
+particles intersecting its display, transformed into local
+coordinates via `screenOriginInGlobal`. Particle positions are pure
+functions of `(origin, velocity, birthTime)`, so multiple scenes
+across multiple displays stay perfectly in sync with zero
+inter-thread communication. Preferences live in
+[`ToasterDefaults`](Flying%20Toasters/ToasterDefaults.m), which posts
+an `NSNotificationCenter` event on every write so the running
+world re-reads its inputs immediately; a 1-second wall-clock poll
+inside `ToasterWorld.tickAtTime:` handles the cross-process case
+where the prefs UI and the preview animator live in different
+processes.
 
-- **Non-rectangular monitor layouts have dead zones.** When monitors are laid out in a T, L, or staggered shape, the bounding rectangle of the virtual desktop covers regions that aren't on any actual display. Toasters can transit invisibly through those gaps. You'll occasionally see a sprite vanish off one monitor's edge and reappear seconds later on another.
-- **Spawn pattern is the original 45° down-left from top/right edges of the global rect.** Toasters that spawn near the global bottom-left corner have a short visible life because they exit the world quickly; sprites that enter from the top of an external monitor and traverse all the way across to the laptop in the opposite corner are visible the longest.
+## Roadmap
+
+Possible next directions (no commitments — see the design doc for
+each):
+
+- **Multi-host Bonjour swarm.** Discover other Macs on the same LAN
+  via MultipeerConnectivity and exchange particle-spawn events so a
+  toaster flying off your screen appears at your neighbour's.
+  [Design doc + honest assessment of what's actually achievable](docs/multi-host-bonjour.md).
+- **Manual per-host layout UI** so the multi-host transitions can
+  be geometrically faithful, not just plausible.
+- **Cloud Cover assets.** Procedural CG cloud sprites work but
+  proper hand-drawn or sourced cloud art would look better.
+- **Toaster style variants** (Winged Toast, Bach Toaster, …) — the
+  texture-loading path is already factored for additional sets, just
+  needs the sprite art.
 
 ## Credits
 
-This project is a derivative of **Robert Venturini's [FlyingToasters](https://github.com/robertventurini/FlyingToasters)**. All credit for the original ObjC screensaver implementation, the SpriteKit scene structure, the texture sequencing, and the wing-flap animation goes to him. The multi-monitor work in this fork is built entirely on top of that base.
-
-The toaster and toast image assets come (via Robert's project) from Bryan Braun's [After Dark CSS](https://github.com/bryanbraun/after-dark-css). As Bryan notes there, those assets are © 1989 Berkeley Systems Inc.
+- **Original Flying Toasters screensaver implementation:**
+  [Robert Venturini](https://github.com/robertventurini/FlyingToasters)
+- **Toaster + toast sprite art:** Originally sourced from
+  [Bryan Braun's After Dark CSS](https://github.com/bryanbraun/after-dark-css),
+  © 1989 Berkeley Systems Inc.
+- **This fork:** Multi-monitor extension, macOS 26 compatibility,
+  expanded preferences, and the live-preview plumbing.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Original copyright Robert Venturini (2020); multi-monitor extensions copyright Clive Wright (2026).
+MIT — see [LICENSE](LICENSE).

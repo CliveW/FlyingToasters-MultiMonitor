@@ -8,6 +8,7 @@
 
 #import "FlyingToastersView.h"
 #import "ScreenSaverScene.h"
+#import "ToasterDefaults.h"
 #import "ToasterWorld.h"
 
 @interface FlyingToastersView ()
@@ -15,12 +16,10 @@
 @end
 
 @implementation FlyingToastersView
+
 - (instancetype)init
 {
     if (self = [super initWithFrame:NSZeroRect]) {
-        _speed = kMediumSpeed;
-        _toastLevel = kGoldenBrownToast;
-
         _toasterScene = [[ScreenSaverScene alloc] initWithSize:self.frame.size];
         _toasterScene.backgroundColor = [NSColor blackColor];
 
@@ -45,9 +44,14 @@
 - (void)start
 {
     ToasterWorld* world = [ToasterWorld shared];
-    [world configureWithToastLevel:self.toastLevel
-                             speed:self.speed
-                             count:self.numOfToasters
+    [world configureWithToastLevel:[ToasterDefaults getToastLevel]
+                             speed:[ToasterDefaults getFlightSpeed]
+                             count:[ToasterDefaults getNumberOfToasters]
+                        cloudCover:[ToasterDefaults getCloudCover]
+                   flightDirection:[ToasterDefaults getFlightDirection]
+                        toastRatio:[ToasterDefaults getToastRatio]
+                     fastFrequency:[ToasterDefaults getFastFrequency]
+                      scaleDensity:[ToasterDefaults getScaleDensity]
                             bundle:[NSBundle bundleForClass:[self class]]];
     [world registerScreenRect:self.screenFrameInGlobal];
     [world start];
