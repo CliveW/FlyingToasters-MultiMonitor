@@ -117,6 +117,18 @@ configured in Xcode for the local code-signing identity. Then in
 System Settings → Screen Saver, pick **Flying Toasters** and click
 **Options** to configure.
 
+## Uninstall
+
+```sh
+bash scripts/uninstall.sh
+```
+
+Kills the wallpaper / screensaver host processes, removes the
+user-level `.saver` bundle and prefs plist, sweeps the macOS-26
+sandboxed-extension containers and wallpaper-agent caches, and
+prompts for sudo only if a system-level install exists. The script
+verifies the system is clean at the end. Safe to re-run; idempotent.
+
 ## Build & run from source
 
 Open `Flying Toasters.xcodeproj` in Xcode 17 or later. The
