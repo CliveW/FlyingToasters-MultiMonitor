@@ -79,6 +79,13 @@
                                                  selector:@selector(_prefsChanged:)
                                                      name:FlyingToastersPrefsChangedNotification
                                                    object:nil];
+        // React instantly when the user rearranges displays / moves the
+        // menu bar / plugs or unplugs an external. Without this we'd wait
+        // up to a second for the tick poll to recompute.
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(_screenParamsChanged:)
+                                                     name:NSApplicationDidChangeScreenParametersNotification
+                                                   object:nil];
     }
     return self;
 }
@@ -87,6 +94,12 @@
 {
     // Skip until first configure call has supplied a bundle (we need it to
     // load textures).
+    if (!self.bundle) return;
+    [self _applyCurrentDefaults];
+}
+
+- (void)_screenParamsChanged:(NSNotification*)note
+{
     if (!self.bundle) return;
     [self _applyCurrentDefaults];
 }
@@ -119,6 +132,14 @@
     CGFloat globalArea = computedBounds.size.width * computedBounds.size.height;
     NSUInteger areaFactor = MAX((NSUInteger)1, (NSUInteger)ceil(globalArea / largestArea));
     self.count = self.scaleDensity ? (count * areaFactor) : count;
+
+    // Healing the multi-display register-with-AppKit race: configureWith…
+    // captures globalBounds on the first start, but [NSScreen screens] can
+    // still be populating when 4 displays are coming up simultaneously, so
+    // the captured union may exclude one or more displays. Re-assigning
+    // here lets the 1-second poll converge on the true union once all
+    // displays have registered.
+    self.globalBounds = computedBounds;
 
     // Toast texture cache depends on toastLevel — invalidate so it rebuilds
     // with the current level on next spawn. Toaster textures are
@@ -219,8 +240,11 @@
     // Allow a subsequent -start to pick up fresh defaults (matters when the
     // System Settings preview re-instantiates the world between slider
     // changes). Cached textures must also drop so a toast-level change
-    // becomes visible without restarting the host process.
+    // becomes visible without restarting the host process. globalBounds
+    // gets cleared so the next configure re-walks NSScreen.screens against
+    // the current display arrangement, not whatever was cached before.
     self.configured = NO;
+    self.globalBounds = NSZeroRect;
     self.cachedToasterTextures = nil;
     self.cachedToastTextures = nil;
     self.cachedCloudTexture = nil;
