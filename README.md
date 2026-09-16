@@ -2,13 +2,63 @@
 
 > macOS screensaver. One shared swarm of After-Dark-style flying toasters
 > that crosses every attached display, with a full set of live-preview
-> options. Targets macOS 26 (Tahoe).
+> options. Targets macOS 26 (Tahoe) and later; tested on macOS 27.
 
 A substantial extension of [Robert Venturini's FlyingToasters](https://github.com/robertventurini/FlyingToasters)
 that turns the saver from a single-display recreation into a true
 multi-monitor experience with rich, immediately-applied settings.
 
 ![Image of FlyingToasters](https://github.com/robertventurini/FlyingToasters/blob/master/FlyingToasters.gif)
+
+## What's new in 2.4
+
+Fixes for toasters and toast that stopped, vanished and restarted on
+macOS 27:
+
+- **No more blank screens.** macOS can create a screensaver view without
+  ever starting it (for example behind the lock screen). Those views used
+  to draw an empty black scene at full frame rate; they now stay paused
+  until they're started.
+- **One display can no longer stop the others.** Stopping a view that was
+  never started could stop the shared swarm on every display. Each view
+  now only releases what it took.
+- **The full swarm appears immediately.** The swarm used to fill in one
+  sprite at a time, which took close to a minute on a four-display setup
+  and started over after every restart. All toasters now begin part-way
+  along their flight paths, so every display is populated from the first
+  frame.
+- **Stopping no longer kills the saver process.** A workaround for a
+  macOS 14 bug called `exit(0)` whenever the saver stopped, which took
+  down every display's view and made the next start come up empty. The
+  saver now just pauses.
+- Each view asks for its display's refresh rate instead of SpriteKit's
+  default 60 fps.
+
+## Known issue: jerky motion on secondary displays (macOS 27)
+
+On macOS 27, when a Mac's **built-in display is the main display**, the
+toasters move jerkily on every other display. The main display itself
+stays smooth.
+
+**Workaround:** when a Mac with a built-in display is connected to
+external monitors, make one of the external monitors the main display
+(System Settings › Displays › select the monitor › Use as main display).
+With an external monitor as main, every display is smooth, including the
+built-in one.
+
+This looks like a problem in how macOS hosts third-party screensavers on
+non-main displays rather than in the saver itself:
+
+- The same drawing code runs smoothly on every display as a normal app.
+- Inside the screensaver, macOS doesn't tell the saver's windows on
+  non-main displays which screen they're on.
+- Changing how the saver draws (Core Animation, classic drawing, and
+  SpriteKit timed to each display's own refresh) made no difference.
+
+It was seen on an M2 MacBook Air with three external monitors (one
+connected directly, two through DisplayLink); a Mac mini with a single
+monitor is unaffected. We're reporting it to Apple through Feedback
+Assistant and will update this note if a macOS update fixes it.
 
 ## What this fork adds
 
