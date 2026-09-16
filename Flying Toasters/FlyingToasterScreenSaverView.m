@@ -117,14 +117,18 @@ static NSNotificationName const ScreenSaverWillStopNotificationName = @"com.appl
 
 - (void)screenSaverWillStopNotification:(NSNotification*)notification
 {
-    if (@available(macOS 14.0, *)) {
-        // Bug in macOS 14+ warrants forcefully exiting the screensaver
-        // so that the 'legacyScreenSaver' process will also quit and release its memory.
-        // This is hacky, but seems to side step the problem.
-        // This approach was reported working on the aerial screensaver here:
-        // https://github.com/JohnCoates/Aerial/issues/1305
-        exit(0);
-    }
+    // macOS 14+ often skips -stopAnimation and keeps the legacyScreenSaver
+    // host alive after the saver is dismissed, so its views kept rendering
+    // (https://github.com/JohnCoates/Aerial/issues/1305). This used to
+    // exit(0), which killed every display's view on each stop and made the
+    // next start come up empty. Pausing the view is enough: an idle host
+    // costs no CPU. -end is idempotent, so a later -stopAnimation is harmless.
+    [self.ftv end];
+}
+
+- (void)dealloc
+{
+    [[NSDistributedNotificationCenter defaultCenter] removeObserver:self];
 }
 
 @end
