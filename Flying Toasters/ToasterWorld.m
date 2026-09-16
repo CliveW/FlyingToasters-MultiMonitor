@@ -43,8 +43,7 @@
 @property (assign) BOOL configured;
 @property (assign) BOOL isRunning;
 @property (assign) uint64_t nextParticleId;
-@property (assign) NSTimeInterval nextSpawnTime;
-@property (assign) NSUInteger spawnIndex;
+@property (assign) BOOL needsPrefill;
 @property (assign) NSInteger viewRefCount;
 @property (assign) NSTimeInterval wingFlapInterval;     // overrides readonly in .h
 @property (assign) NSTimeInterval lastPrefsRescan;
@@ -225,8 +224,7 @@
 {
     if (self.isRunning) return;
     self.isRunning = YES;
-    self.spawnIndex = 0;
-    self.nextSpawnTime = CFAbsoluteTimeGetCurrent();
+    self.needsPrefill = YES;
     [self.mutableParticles removeAllObjects];
     [self.mutableClouds removeAllObjects];
 }
@@ -266,13 +264,19 @@
         [self _applyCurrentDefaults];
     }
 
-    [self _reapAndSpawnToastersAtTime:now];
-    [self _reapAndSpawnCloudsAtTime:now];
+    // On the first tick after -start, spread the whole population along
+    // its flight paths so the swarm is complete from the first frame.
+    BOOL prefill = self.needsPrefill;
+    [self _reapAndSpawnToastersAtTime:now prefill:prefill];
+    [self _reapAndSpawnCloudsAtTime:now prefill:prefill];
+    if (prefill && self.mutableParticles.count >= self.count) {
+        self.needsPrefill = NO;
+    }
 }
 
 #pragma mark - Toasters + toast
 
-- (void)_reapAndSpawnToastersAtTime:(NSTimeInterval)now
+- (void)_reapAndSpawnToastersAtTime:(NSTimeInterval)now prefill:(BOOL)prefill
 {
     NSMutableArray<FTToasterParticle*>* survivors =
         [NSMutableArray arrayWithCapacity:self.mutableParticles.count];
@@ -281,23 +285,17 @@
     }
     self.mutableParticles = survivors;
 
-    NSTimeInterval spawnInterval = (NSTimeInterval)self.speed / 10.0;
-    BOOL initialFill = self.mutableParticles.count < self.count && self.spawnIndex < self.count;
     while (self.mutableParticles.count < self.count) {
-        if (initialFill && now < self.nextSpawnTime) break;
         FTToasterParticle* p = [self _spawnToasterAtTime:now];
         if (!p) break;
+        if (prefill) [self _ageParticle:p atTime:now];
         [self.mutableParticles addObject:p];
-        self.nextSpawnTime = now + spawnInterval;
-        initialFill = self.spawnIndex < self.count;
     }
 }
 
 - (FTToasterParticle*)_spawnToasterAtTime:(NSTimeInterval)now
 {
     if (NSIsEmptyRect(self.globalBounds)) return nil;
-
-    self.spawnIndex++;
 
     // Toast vs toaster: probabilistic by ratio.
     BOOL isToast = (self.toastRatio > 0) &&
@@ -341,7 +339,7 @@
 
 #pragma mark - Clouds
 
-- (void)_reapAndSpawnCloudsAtTime:(NSTimeInterval)now
+- (void)_reapAndSpawnCloudsAtTime:(NSTimeInterval)now prefill:(BOOL)prefill
 {
     if (self.cloudCover == 0) {
         if (self.mutableClouds.count) [self.mutableClouds removeAllObjects];
@@ -358,6 +356,7 @@
     while (self.mutableClouds.count < self.cloudCover) {
         FTToasterParticle* c = [self _spawnCloudAtTime:now];
         if (!c) break;
+        if (prefill) [self _ageParticle:c atTime:now];
         [self.mutableClouds addObject:c];
     }
 }
@@ -402,6 +401,28 @@
 }
 
 #pragma mark - Geometry helpers
+
+// Back-date a freshly spawned particle so it starts somewhere along its path
+// instead of just outside the edge. Halve the age until the particle is still
+// inside the world; fall back to the edge if it never is.
+- (void)_ageParticle:(FTToasterParticle*)p atTime:(NSTimeInterval)now
+{
+    NSRect b = self.globalBounds;
+    CGFloat vx = fabs(p.velocity.dx);
+    CGFloat vy = fabs(p.velocity.dy);
+    NSTimeInterval tx = vx > 0 ? NSWidth(b) / vx : DBL_MAX;
+    NSTimeInterval ty = vy > 0 ? NSHeight(b) / vy : DBL_MAX;
+    NSTimeInterval maxAge = MIN(tx, ty);
+    if (maxAge <= 0 || maxAge == DBL_MAX) return;
+
+    NSTimeInterval age = maxAge * arc4random_uniform(1000) / 1000.0;
+    for (int i = 0; i < 4; i++) {
+        p.birthTime = now - age;
+        if ([self _particleInBounds:p atTime:now]) return;
+        age /= 2.0;
+    }
+    p.birthTime = now;
+}
 
 - (BOOL)_particleInBounds:(FTToasterParticle*)p atTime:(NSTimeInterval)t
 {
