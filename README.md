@@ -57,8 +57,8 @@ non-main displays rather than in the saver itself:
 
 It was seen on an M2 MacBook Air with three external monitors (one
 connected directly, two through DisplayLink); a Mac mini with a single
-monitor is unaffected. We're reporting it to Apple through Feedback
-Assistant and will update this note if a macOS update fixes it.
+monitor is unaffected. It's reported to Apple as **FB24808409**; this
+note will be updated if a macOS update fixes it.
 
 ## What this fork adds
 
